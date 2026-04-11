@@ -68,6 +68,10 @@ python gui_colorful_test.py
 - The project is intentionally styled as a beta demo with retro visuals.
 - If the font file is missing, the app falls back to the system monospace font. (it'll usually don't happen)
 
+## Thanks
+
+Thanks int10h.org for fonts!
+
 ## License
 
 MIT License
