@@ -1,0 +1,45 @@
+name: Build and Release VS-DOS
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'Alpha*'
+      - 'Beta*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        # Using 3.14 specifically to match your local environment
+        python-version: '3.14'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+
+    - name: Build Executable
+      run: |
+        pyinstaller --onefile `
+        --add-data "main.py;." `
+        --add-data "bios.py;." `
+        --add-data "gui_colorful_test.py;." `
+        --name VS-DOS-Launcher `
+        launcher.py
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/VS-DOS-Launcher.exe
+        # Marks as "Pre-release" if the tag name has Alpha or Beta in it
+        prerelease: ${{ contains(github.ref_name, 'Alpha') || contains(github.ref_name, 'Beta') }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
