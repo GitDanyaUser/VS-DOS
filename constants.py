@@ -17,5 +17,9 @@ colors = {
     "white": (255, 255, 255)
 }
 
+colors256 = {
+    #TODO: Add 256 colors and maybe switch fully to using this in the future
+}
+
 def get_color_names():
     return list(colors.keys())

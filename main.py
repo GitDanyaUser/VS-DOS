@@ -28,7 +28,7 @@ def get_cur_node():
 pygame.init()
 
 screen = pygame.display.set_mode((640, 480))
-pygame.display.set_caption("VS-DOS Beta 2 Prompt")
+pygame.display.set_caption("VS-DOS Prompt")
 
 colors = constants.colors
 
@@ -38,7 +38,7 @@ except:
     print("Font file not found, using default.")
     dos_font = pygame.font.SysFont("monospace", FONT_SIZE)
 
-# Draw the color block [████████]
+# Reference: color block [████████]
 
 import re
 
@@ -100,32 +100,7 @@ def wrap_text(text, font, max_width):
         wrapped_lines.append(current_line.strip())
         
     return wrapped_lines
-"""
-def run_post():
-    info = get_sys_info()
-    lines = [
-        info["BIOS"],
-        f"CPU: {info['CPU']}",
-        "Memory Test: 0 KB",
-    ]
-    
-    # Simulate RAM counting
-    for ram in range(0, info["RAM"] + 1, 4096):
-        lines[2] = f"Memory Test: {ram} KB OK"
-        render_lines(lines)
-        time.sleep(0.05)
-    
-    winsound.Beep(1000, 500)  # Beep to indicate RAM test completion
 
-    lines.append(f"Primary Master: Detecting...")
-    time.sleep(0.5)
-
-    lines.append("")
-    lines.append("Starting VS-DOS...")
-    render_lines(lines)
-    time.sleep(4)
-    return ["VS-DOS Beta 2 rev. 1 - MIT License, GitDanyaUser", ""]
-"""
 
 def bsod(code="0x0000003b", code_desc="SYSTEM_SERVICE_EXCEPTION"):
     lines = [
@@ -200,6 +175,12 @@ def colortest():
     lines.append("============================")
     return lines
 
+def colortest_256():
+    screen.fill(colors["black"])
+    pygame.display.flip()
+    time.sleep(0.5)
+    bsod(code="0x00000116", code_desc="VIDEO_TDR_FAILURE")
+
 def editor(args):
     # TODO: Implement in Beta 3
     return "We're sorry, but the editor is not implemented, modify filestorage.json directly."
@@ -222,7 +203,7 @@ def help():
 
 COMMANDS = {
     "cls": lambda args: [],
-    "ver": lambda args: ["VS-DOS Beta 2 rev. 1 - MIT License, GitDanyaUser"],
+    "ver": lambda args: [get_sys_info()["OS"]],
     "sysinfo": lambda args: [
         f"BIOS: {get_sys_info()['BIOS']}",
         f"CPU: {get_sys_info()['CPU']}",
@@ -234,6 +215,7 @@ COMMANDS = {
     "type": lambda args: cmd_type(args) if args else "Filename required.",
     "cd": lambda args: change_dir(args),
     "colortest": lambda args: display_history.append("Make sure your monitor supports 16 colors!") or render_lines(display_history) or time.sleep(3) or colortest(),
+    "colortest/256color": lambda args: display_history.append("Make sure your monitor supports 256 colors!") or render_lines(display_history) or time.sleep(3) or colortest_256(),
     "editor": lambda args: editor(args),
     "help": lambda args: help()
 }
@@ -242,6 +224,7 @@ def main():
     global display_history
     display_history = bios_post(screen, render_lines)
     input_text = ""
+    pygame.display.set_caption("VS-DOS Prompt")
     
     while True:
         # 1. Update the Prompt based on current_path

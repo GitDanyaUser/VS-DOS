@@ -4,12 +4,13 @@ import pygame
 
 def get_sys_info():
     return {
-        "BIOS": "Award Modular BIOS v6.00PG, An Energy Star Ally",
+        "BIOS": "Award Modular BIOS v6.00PG",
         "BIOS2": "Copyright (C) 1984-99, Award Software, Inc.",
         "VGABIOS": "Phoenix Technologies Ltd. VGA BIOS v1.0",
         "CPU": "I486DX4 100MHz(33x3)",
         "RAM": 64000, 
-        "HDD": 512
+        "HDD": 512,
+        "OS": "VS-DOS Beta 2 rev. 2"
     }
 
 def bios_post(screen, render_lines):
@@ -22,7 +23,7 @@ def bios_post(screen, render_lines):
     logo_rect = eslogo.get_rect(topright=(screen.get_width() - 10, 10))
 
     lines = [
-        info["BIOS"],
+        f"{info['BIOS']}, An Energy Star Ally",
         info["BIOS2"],
         "",
         "GREEN AGP/PCI/ISA/AMR SYSTEM",
@@ -72,4 +73,4 @@ def bios_post(screen, render_lines):
     refresh()
     
     time.sleep(2)
-    return ["VS-DOS Beta 2 rev. 1 - MIT License, GitDanyaUser", ""]
+    return [f"{info['OS']} - MIT License, GitDanyaUser", ""]

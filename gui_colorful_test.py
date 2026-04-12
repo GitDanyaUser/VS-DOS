@@ -81,7 +81,7 @@ def main():
         # Draw some content inside the window
         msg = small_font.render("System Color Palette Diagnostic", True, colors["black"])
         screen.blit(msg, (140, 135))
-
+        
         msg2 = win_font.render("This text will be coloured red", True, colors["red"])
         screen.blit(msg2, (140, 220))
         msg3 = win_font.render("This text will be coloured green", True, colors["green"])

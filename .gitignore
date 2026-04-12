@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Script
+fonts/filestorage.json
+gui_*.py
+
 # Distribution / packaging
 .Python
 build/

@@ -2,6 +2,7 @@ import pygame
 import sys
 import time
 import os
+from bios import get_sys_info
 from main import render_lines
 
 FONT_PATH = os.path.join("fonts", "Px437_IBM_VGA_8x16.ttf")
@@ -32,14 +33,14 @@ def main():
     eslogo = pygame.transform.scale(eslogo, (150, 100))
     logo_rect = eslogo.get_rect(topright=(screen.get_width() - 10, 10))
     lines = [
-        "Award Modular BIOS v6.00PG, An Energy Star Ally",
-        "Copyright (C) 1984-99, Award Software, Inc.",
+        f"{get_sys_info()['BIOS']}, An Energy Star Ally",
+        get_sys_info()["BIOS2"],
         "",
         "GREEN AGP/PCI/ISA/AMR SYSTEM",
         "",
         'COL_SHOW:white;"BOOT MENU"',
         "",
-        'COL_SHOW:white;"1. " light_gray;"Disk C: (VS-DOS Beta 2 rev. 1) [BOOT]"',
+        f'COL_SHOW:white;"1. " light_gray;"Disk C: ({get_sys_info()["OS"]}) [BOOT]"',
         'COL_SHOW:white;"2. " light_gray;"Disk D: (GUI Color Test)"',
         'COL_SHOW:white;"3. " light_gray;"Enter Setup (Not Implemented)"',
         'COL_SHOW:white;"4. " light_gray;"Shutdown"'
