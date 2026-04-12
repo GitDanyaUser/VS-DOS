@@ -1,10 +1,10 @@
 import pygame
 import sys
 import os
-import main
+import constants
 
 # --- Constants & Colors ---
-colors = main.colors2()
+colors = constants.colors
 
 pygame.init()
 screen = pygame.display.set_mode((640, 480))
@@ -76,17 +76,17 @@ def main():
         screen.fill(colors["light_cyan"])
         
         # Draw a "Program Manager" style window
-        draw_window(screen, "Color Test - Diagnostics", 120, 100, 400, 250)
+        draw_window(screen, "VS-DOS Default Manager", 120, 100, 400, 250)
         
         # Draw some content inside the window
         msg = small_font.render("System Color Palette Diagnostic", True, colors["black"])
         screen.blit(msg, (140, 135))
 
-        msg2 = win_font.render("This text will be coloured red (DOS default)", True, colors["red"])
+        msg2 = win_font.render("This text will be coloured red", True, colors["red"])
         screen.blit(msg2, (140, 220))
-        msg3 = win_font.render("This text will be coloured green (DOS default)", True, colors["green"])
+        msg3 = win_font.render("This text will be coloured green", True, colors["green"])
         screen.blit(msg3, (140, 240))
-        msg4 = win_font.render("This text will be coloured blue (DOS default)", True, colors["blue"])
+        msg4 = win_font.render("This text will be coloured blue", True, colors["blue"])
         screen.blit(msg4, (140, 260))
 
         # Draw small color swatches (Visualizing your colors dict)

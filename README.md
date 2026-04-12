@@ -1,14 +1,15 @@
-# VS-DOS Beta 1
+# VS-DOS
 
-A retro-inspired DOS emulator written in Python using `pygame`.
+A retro-inspired DOS simulator written in Python using `pygame`.
 
 ## What it is
 
-`VS-DOS Beta 1` is a nostalgic proof-of-concept DOS-style shell with a graphical text display, boot simulation, basic commands, and 16-color VGA-style rendering.
+`VS-DOS` is a nostalgic proof-of-concept DOS-style shell with a graphical text display, boot simulation, basic commands, and 16-color VGA-style rendering.
 
 ## Features
 
 - Retro `C:\>` prompt experience
+- A Award Modular BIOS styled launcher
 - Boot POST simulation with BIOS/CPU/RAM/HDD output
 - Basic command support:
   - `cls` — clear the screen
@@ -25,8 +26,11 @@ A retro-inspired DOS emulator written in Python using `pygame`.
 ## Files
 
 - `main.py` — main application loop, input handling, command processing, and rendering
-- `bios.py` — returns mock system information for the boot sequence
+- `bios.py` — handles the POST screen for `main.py`
+- `gui_colorful_test.py` — a Windows 3.1-styled GUI test
+- `launcher.py` — a launcher for both main application and GUI test
 - `fonts/Px437_IBM_VGA_8x16.ttf` — IBM VGA-style font used for rendering text
+- `epa.png` — Energy Star logo for BIOS
 
 ## Requirements
 
@@ -53,13 +57,7 @@ python -m pip install pygame
 From the project folder:
 
 ```bash
-python main.py
-```
-
-Or if you wanna run GUI test (experimental):
-
-```bash
-python gui_colorful_test.py
+python launcher.py
 ```
 
 ## Notes
