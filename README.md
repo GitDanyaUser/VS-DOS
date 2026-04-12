@@ -62,8 +62,6 @@ python launcher.py
 
 ## Notes
 
-- `dir` and `type` are currently stubs and return placeholder text.
-- The project is intentionally styled as a beta demo with retro visuals.
 - If the font file is missing, the app falls back to the system monospace font. (it'll usually don't happen)
 
 ## Thanks
