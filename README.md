@@ -6,6 +6,15 @@ A retro-inspired DOS simulator written in Python using `pygame`.
 
 `VS-DOS` is a nostalgic proof-of-concept DOS-style shell with a graphical text display, boot simulation, basic commands, and 16-color VGA-style rendering.
 
+## Screenshots
+
+<img width="636" height="508" alt="Записати1" src="https://github.com/user-attachments/assets/1953a09b-afef-44ce-b515-e02456de1923" />
+
+<img width="638" height="508" alt="Записати" src="https://github.com/user-attachments/assets/3e3806b4-9542-4905-b23f-ed49b6793553" />
+
+<img width="633" height="514" alt="Записати2" src="https://github.com/user-attachments/assets/9ab42bc6-dc25-4527-a4dc-c84873cf9d7d" />
+
+
 ## Features
 
 - Retro `C:\>` prompt experience
