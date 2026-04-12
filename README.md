@@ -14,6 +14,7 @@ A retro-inspired DOS simulator written in Python using `pygame`.
 
 <img width="633" height="514" alt="Записати2" src="https://github.com/user-attachments/assets/9ab42bc6-dc25-4527-a4dc-c84873cf9d7d" />
 
+<img width="642" height="512" alt="Записати3" src="https://github.com/user-attachments/assets/e81ed96c-0e0c-42ce-a568-8e4fb0f92ead" />
 
 ## Features
 
