@@ -11,7 +11,7 @@ screen = pygame.display.set_mode((640, 480))
 pygame.display.set_caption("Windows 3.1 Color Test")
 
 # Load Font
-FONT_PATH = os.path.join("fonts", "Px437_IBM_VGA_8x16.ttf")
+FONT_PATH = constants.FONT_PATH
 try:
     win_font = pygame.font.Font(FONT_PATH, 16)
     big_font = pygame.font.Font(FONT_PATH, 20)

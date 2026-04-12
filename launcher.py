@@ -4,9 +4,10 @@ import time
 import os
 from bios import get_sys_info
 from main import render_lines
+import constants
 
-FONT_PATH = os.path.join("fonts", "Px437_IBM_VGA_8x16.ttf")
-FONT_SIZE = 16
+FONT_PATH = constants.FONT_PATH
+FONT_SIZE = constants.FONT_SIZE
 
 pygame.init()
 
@@ -42,7 +43,7 @@ def main():
         "",
         f'COL_SHOW:white;"1. " light_gray;"Disk C: ({get_sys_info()["OS"]}) [BOOT]"',
         'COL_SHOW:white;"2. " light_gray;"Disk D: (GUI Color Test)"',
-        'COL_SHOW:white;"3. " light_gray;"Enter Setup (Not Implemented)"',
+        'COL_SHOW:white;"3. " light_gray;"Enter Setup"',
         'COL_SHOW:white;"4. " light_gray;"Shutdown"'
     ]
     render_lines(lines)
@@ -66,8 +67,9 @@ if __name__ == "__main__":
                     import gui_colorful_test
                     gui_colorful_test.main()
                 elif event.key == pygame.K_3:
-                    # Enter Setup (Not Implemented)
-                    pass
+                    # Enter Setup
+                    import bios
+                    bios.bios_setup(screen, render_lines)
                 elif event.key == pygame.K_4:
                     # Shutdown
                     pygame.quit()

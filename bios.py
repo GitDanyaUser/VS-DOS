@@ -1,6 +1,10 @@
+import sys
 import time
 import winsound
 import pygame
+import constants
+
+colors = constants.colors
 
 def get_sys_info():
     return {
@@ -10,7 +14,7 @@ def get_sys_info():
         "CPU": "I486DX4 100MHz(33x3)",
         "RAM": 64000, 
         "HDD": 512,
-        "OS": "VS-DOS Beta 2 rev. 2"
+        "OS": "VS-DOS Beta 2 rev. 3"
     }
 
 def bios_post(screen, render_lines):
@@ -74,3 +78,74 @@ def bios_post(screen, render_lines):
     
     time.sleep(2)
     return [f"{info['OS']} - MIT License, GitDanyaUser", ""]
+
+def bios_setup(screen, render_lines):
+    pygame.display.set_caption("Award Modular BIOS v6.00PG Setup Utility")
+
+    def draw_text_centered(text, center):
+        font = pygame.font.Font(constants.FONT_PATH, constants.FONT_SIZE)
+        text_surf = font.render(text, True, colors["white"])
+        text_rect = text_surf.get_rect(center=center)
+        screen.blit(text_surf, text_rect)
+    
+    lines = [
+        "ROM PCI/ISA BIOS (2A69HQ1A)",
+        "CMOS SETUP UTILITY",
+        "AWARD SOFTWARE, INC.",
+        "",
+        " STANDARD CMOS SETUP           INTEGRATED PERIPHERALS",
+        " BIOS FEATURES SETUP           PC HEALTH STATUS",
+        " CHIPSET FEATURES SETUP        LOAD FAIL-SAFE DEFAULTS",
+        " POWER MANAGEMENT SETUP       LOAD OPTIMIZED DEFAULTS",
+        " PNP/PCI CONFIGURATION         SET PASSWORD",
+        " LOAD BIOS DEFAULTS            SAVE & EXIT SETUP",
+        " LOAD SETUP DEFAULTS           EXIT WITHOUT SAVING",
+        "",
+        " Esc : Quit                    ↑ ↓ → ← : Select Item",
+        " F10 : Save & Exit Setup       (Shift)F2 : Change Color"
+    ]
+
+    running = True
+    show_confirm = False
+
+    while running:
+        screen.fill(colors["blue"])
+        render_lines(lines, bg_color=colors["blue"], text_color=colors["white"])
+
+        if show_confirm:
+            # Create a simple red confirmation box overlay
+            overlay_rect = pygame.Rect(0, 0, 400, 100)
+            overlay_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
+            
+            # Draw box shadow then the box
+            pygame.draw.rect(screen, colors["black"], overlay_rect.move(5, 5)) 
+            pygame.draw.rect(screen, colors["red"], overlay_rect)
+            pygame.draw.rect(screen, colors["white"], overlay_rect, 2) # Border
+
+            # Render the prompt text
+            # Assuming your render_lines can take an optional offset or custom positioning
+            # For simplicity, we'll use a basic prompt message:
+            confirm_msg = "SAVE to CMOS and EXIT (Y/N)?  "
+            # (You might need a small helper here to draw text at a specific coordinate)
+            draw_text_centered(confirm_msg, overlay_rect.center)
+        
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            
+            if event.type == pygame.KEYDOWN:
+                if not show_confirm:
+                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_F10:
+                        winsound.Beep(800, 50) # Tiny feedback beep
+                        show_confirm = True
+                else:
+                    # Logic for the confirmation box
+                    if event.key == pygame.K_y:
+                        running = False # Exit setup
+                    if event.key == pygame.K_n or event.key == pygame.K_ESCAPE:
+                        show_confirm = False # Go back to menu
+    pygame.quit()
+    sys.exit()

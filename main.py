@@ -7,8 +7,8 @@ import constants
 import re
 import vfsinit
 
-FONT_PATH = os.path.join("fonts", "Px437_IBM_VGA_8x16.ttf")
-FONT_SIZE = 16
+FONT_PATH = constants.FONT_PATH
+FONT_SIZE = constants.FONT_SIZE
 VFS_PATH = vfsinit.VFS_PATH
 
 vfsinit.init_vfs()
@@ -39,8 +39,6 @@ except:
     dos_font = pygame.font.SysFont("monospace", FONT_SIZE)
 
 # Reference: color block [████████]
-
-import re
 
 def render_lines(lines, bg_color=colors["black"], text_color=colors["light_gray"]):
     screen.fill(bg_color)
@@ -202,7 +200,7 @@ def help():
     ]
 
 COMMANDS = {
-    "cls": lambda args: [],
+    "cls": lambda args: [display_history.clear(), []][1],
     "ver": lambda args: [get_sys_info()["OS"]],
     "sysinfo": lambda args: [
         f"BIOS: {get_sys_info()['BIOS']}",

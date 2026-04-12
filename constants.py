@@ -1,3 +1,8 @@
+import os
+
+FONT_PATH = os.path.join("fonts", "Px437_IBM_VGA_8x16.ttf")
+FONT_SIZE = 16
+
 colors = {
     "black": (0, 0, 0),
     "blue": (0, 0, 170),
