@@ -26,21 +26,13 @@ A retro-inspired DOS simulator written in Python using `pygame`.
   - `ver` — show version information
   - `sysinfo` — display system info
   - `echo` — echo text back
-  - `dir` — placeholder directory listing
-  - `type` — placeholder file viewer
+  - `dir` — directory listing
+  - `type` — file viewer
   - `colortest` — render a 16-color block test
+  - `edit` — placeholder for editor
   - `help` — list available commands
   - `exit` — quit the app
-- Custom VGA-style color palette and DOS font rendering
-
-## Files
-
-- `main.py` — main application loop, input handling, command processing, and rendering
-- `bios.py` — handles the POST screen for `main.py`
-- `gui_colorful_test.py` — a Windows 3.1-styled GUI test
-- `launcher.py` — a launcher for both main application and GUI test
-- `fonts/Px437_IBM_VGA_8x16.ttf` — IBM VGA-style font used for rendering text
-- `epa.png` — Energy Star logo for BIOS
+- VGA-style color palette and DOS font rendering
 
 ## Requirements
 
@@ -73,6 +65,7 @@ python launcher.py
 ## Notes
 
 - If the font file is missing, the app falls back to the system monospace font. (it'll usually don't happen)
+- It's still in beta! Expect a lot of issues.
 
 ## Thanks
 
