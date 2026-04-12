@@ -8,7 +8,7 @@ A retro-inspired DOS simulator written in Python using `pygame`.
 
 ## Screenshots
 
-<img width="636" height="508" alt="Записати1" src="https://github.com/user-attachments/assets/1953a09b-afef-44ce-b515-e02456de1923" />
+<img width="642" height="512" alt="Записати1" src="https://github.com/user-attachments/assets/86fde9b3-5f2c-4ec0-83c2-c040631104b2" />
 
 <img width="638" height="508" alt="Записати" src="https://github.com/user-attachments/assets/3e3806b4-9542-4905-b23f-ed49b6793553" />
 
