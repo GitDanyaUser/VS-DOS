@@ -1,6 +1,5 @@
 import pygame
 import sys
-import time
 import os
 from bios import get_sys_info
 from main import render_lines

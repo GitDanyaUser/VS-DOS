@@ -1,9 +1,8 @@
 import sys
-import time
-import winsound
 import pygame
 import constants
 from sound import play_beep
+from utils import sleep
 
 colors = constants.colors
 
@@ -16,7 +15,7 @@ def get_sys_info():
         "CPU": "I486DX4 100MHz(33x3)",
         "RAM": 64000, #B
         "HDD": 512, #MB
-        "OS": "VS-DOS Beta 3 rev. 1"
+        "OS": "VS-DOS 0.1 rev. 1"
     }
 
 def bios_post(screen, render_lines):
@@ -50,9 +49,9 @@ def bios_post(screen, render_lines):
     for i in range(0, info["RAM"] + 1, 4096):
         lines[6] = f"Memory Test: {i} KB OK"
         refresh()
-        time.sleep(0.05)
+        sleep(0.05)
     
-    play_beep(frequency=1000, duration=500)
+    play_beep(frequency=1000, duration=200)
 
     # 2. Add Plug and Play info
     lines.extend([
@@ -63,7 +62,7 @@ def bios_post(screen, render_lines):
     ])
     refresh()
     
-    time.sleep(0.5)
+    sleep(0.5)
     
     # 3. HDD detection
     lines[11] = f"Primary Master: Fixed Disk {info['HDD']} MB"
@@ -74,11 +73,11 @@ def bios_post(screen, render_lines):
     ])
     refresh()
     
-    time.sleep(1)
+    sleep(1)
     lines.extend(["", "Starting VS-DOS..."])
     refresh()
     
-    time.sleep(2)
+    sleep(2)
     return [f"{info['OS']} - MIT License, GitDanyaUser", ""]
 
 def bios_setup(screen, render_lines):

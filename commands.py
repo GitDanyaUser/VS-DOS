@@ -6,6 +6,8 @@ import time
 import constants
 import os
 import gui_stuff
+import vfsinit
+from utils import sleep
 
 colors = constants.colors
 SYSTEM_FILES = constants.SYSTEM_FILES
@@ -43,7 +45,7 @@ def gputest(render_lines, colors: dict):
     for color in color_names:
         lines.append(f'COL_SHOW:{color};"████████████████"')
         render_lines(lines)
-        time.sleep(0.02)
+        sleep(0.02)
     lines.extend(lines2)
     render_lines(lines)
     
@@ -69,7 +71,7 @@ def editor(render_lines, screen, dos_font, colors, current_phys_path, args):
         f"SYSTEM: {get_sys_info()["OS"]}"
     ]
     render_lines(boot_lines, colors["blue"], colors["white"])
-    time.sleep(1)
+    sleep(1)
     content = ""
     if os.path.exists(file_path):
         with open(file_path, "r") as f:
@@ -157,16 +159,20 @@ def delete(current_phys_path, args):
     else:
         return "File not found."
 
-def mgmt(screen, colors):
+def stat(screen, colors):
     screen.fill(colors["blue"])
     gui_stuff.draw_window(win_font, screen, "Stat Manager", 0, 0, 640, 480, close=False)
-    msg = win_font.render(f"RAM: {get_sys_info()["RAM"] / 1000}KB", True, colors["black"])
+    msg = win_font.render(f"RAM: {get_sys_info()["RAM"] // 1024}KB", True, colors["black"])
     screen.blit(msg, (30, 30))
-    msg2 = win_font.render(f"HDD: {get_sys_info()["HDD"]}MB", True, colors["black"])
+    msg2 = win_font.render(f"CPU: {get_sys_info()["CPU"]}", True, colors["black"])
     screen.blit(msg2, (30, 50))
     msg3 = win_font.render(f"OS: {get_sys_info()["OS"]}", True, colors["black"])
     screen.blit(msg3, (30, 70))
-    
+    msg4 = win_font.render(f"HDD Total: {get_sys_info()["HDD"]}MB", True, colors["black"])
+    screen.blit(msg4, (30, 90))
+    msg5 = win_font.render(f"HDD Free: {vfsinit.get_vfs_metadata()["free"] // (1024*1024)}MB", True, colors["black"])
+    screen.blit(msg5, (30, 110))
+
     msgexit = win_font.render(f"Press Enter to exit", True, colors["black"])
     screen.blit(msgexit, (30, 450))
 
@@ -181,3 +187,123 @@ def mgmt(screen, colors):
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     waiting = False
+
+def vsdos_setup(render_lines, colors, skip=False):
+    def lines_right(lines, spaces=5):
+        return [" " * spaces + line for line in lines]
+
+    def add_lines(lines):
+        return top_lines + lines_right(lines)
+    
+    def wait_for_input(current_screen, target_key=None):
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                
+                # Check for KEYDOWN first to avoid AttributeErrors
+                if event.type == pygame.KEYDOWN:
+                    # ESCAPE HANDLER
+                    if event.key == pygame.K_ESCAPE:
+                        ask = [
+                            "Are you sure to cancel the installation process?",
+                            "Press Y to exit the wizard",
+                            "Press N to return"
+                        ]
+                        render_lines(ask, colors["blue"], colors["white"])
+                        
+                        waiting2 = True
+                        while waiting2:
+                            for ev in pygame.event.get():
+                                if ev.type == pygame.QUIT:
+                                    pygame.quit()
+                                    sys.exit()
+                                if ev.type == pygame.KEYDOWN:
+                                    if ev.key == pygame.K_y:
+                                        pygame.quit()
+                                        sys.exit()
+                                    elif ev.key == pygame.K_n:
+                                        render_lines(top_lines + lines_right(current_screen), colors["blue"], colors["white"])
+                                        waiting2 = False
+                    
+                    # Target key logic (only runs if KEYDOWN)
+                    if target_key is None:
+                        if event.key == pygame.K_RETURN:
+                            waiting = False
+                    elif event.key == target_key:
+                        waiting = False
+
+    if skip:
+        return
+    top_lines = [
+        "=====================",
+        " VS-DOS Installation",
+        "=====================",
+    ]
+    install_lines = [
+        "",
+        "",
+        "Welcome to the VS-DOS Installation Wizard!",
+        "This wizard will guide you through the installation of VS-DOS",
+        "",
+        "VS-DOS allows you to manage disk files, also VS-DOS supports VGA",
+        "",
+        "Press Enter to begin the installation process",
+        "",
+        "Press ESC to exit the installer"
+    ]
+    install_lines2 = [
+        "",
+        "",
+        "This will format drive C, are you sure to continue?",
+        "",
+        "Press C to format the drive",
+        "",
+        "Press ESC to exit the installer"
+    ]
+    install_lines3 = [
+        "",
+        "",
+        "Thanks for installing VS-DOS!",
+        "To see all of the avaiable commands, type 'help'",
+        "",
+        "Press Enter to exit the installer"
+    ]
+    wait_lines = [
+        "",
+        "",
+        "Please wait while installation wizard formats the drive..."
+    ]
+    files = [
+        "C:\\COMMAND.COM",
+        "C:\\DOS\\IO.SYS",
+        "C:\\DOS\\VSDOS.SYS",
+        "C:\\DOS\\MOUSE.SYS",
+        "C:\\DOS\\EDIT.COM",
+        "C:\\CONFIG.SYS",
+        "C:\\AUTOEXEC.BAT",
+        "C:\\README.TXT"
+    ]
+    render_lines(add_lines(install_lines), colors["blue"], colors["white"])
+    wait_for_input(install_lines)
+    render_lines(add_lines(install_lines2), colors["blue"], colors["white"])
+    wait_for_input(install_lines2, target_key=pygame.K_c)
+    render_lines(add_lines(wait_lines), colors["blue"], colors["white"])
+    sleep(6)
+    for i, fname in enumerate(files):
+        wait_lines2 = [
+            "",
+            "",
+            f"Copying files...",
+            f"Target: {fname}",
+            "",
+            "Please wait as setup copying all of the essential files"
+        ]
+        render_lines(add_lines(wait_lines2), colors["blue"], colors["white"])
+        sleep(1.5)
+    render_lines(add_lines(install_lines3), colors["blue"], colors["white"])
+    wait_for_input(install_lines3)
+    with open(os.path.join(constants.STORAGE_PATH, "install.txt"), "w") as f:
+        f.write("Delete me if you want to see installer again")

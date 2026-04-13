@@ -21,7 +21,7 @@ def init_vfs():
                 "dos": None,
                 "dos/edit.com": "Placeholder for edit.com executable.",
                 "dos/mouse.sys": "Placeholder for mouse.sys driver.",
-                "dos/msdos.sys": "Placeholder for msdos.sys library",
+                "dos/vsdos.sys": "Placeholder for msdos.sys library",
                 "dos/io.sys": "Placeholder for io.sys library",
                 "temp": None
             }

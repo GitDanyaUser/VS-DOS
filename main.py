@@ -7,6 +7,7 @@ import constants
 import re
 import vfsinit
 import commands
+from utils import sleep
 
 FONT_PATH = constants.FONT_PATH
 FONT_SIZE = constants.FONT_SIZE
@@ -196,7 +197,7 @@ def cmd_type(args):
 def colortest_256():
     screen.fill(colors["black"])
     pygame.display.flip()
-    time.sleep(0.5)
+    sleep(0.5)
     bsod(code="0x00000116", code_desc="VIDEO_TDR_FAILURE")
 
 def help():
@@ -212,7 +213,7 @@ def help():
         "DEL [filename] - Delete a file",
         "GPUTEST - Test GPU capabilities",
         "EDIT [filename] - Open file in editor",
-        "MGMT - Open statistic"
+        "STAT - Open statistic",
         "HELP - Show this help message",
         "EXIT - Shutdown this computer"
     ]
@@ -223,9 +224,9 @@ COMMANDS = {
     "sysinfo": lambda args: [
         f"BIOS: {get_sys_info()['BIOS']}",
         f"CPU: {get_sys_info()['CPU']}",
-        f"RAM: {get_sys_info()['RAM']} KB",
+        f"RAM: {get_sys_info()['RAM'] // 1024} KB",
         f"HDD Total: {vfsinit.get_vfs_metadata()['total'] // (1024*1024)} MB",
-        f"HDD Free: {vfsinit.get_vfs_metadata()['free']}"
+        f"HDD Free: {vfsinit.get_vfs_metadata()['free'] // (1024*1024)} MB"
     ],
     "echo": lambda args: [" ".join(args)],
     "dir": lambda args: dirlist(),
@@ -236,14 +237,22 @@ COMMANDS = {
     "time": lambda args: display_history.append(commands.timetell()),
     "gputest": lambda args: commands.gputest(render_lines, colors),
     "del": lambda args: commands.delete(get_real_current_path(), args),
-    "mgmt": lambda args: commands.mgmt(screen, colors),
+    "stat": lambda args: commands.stat(screen, colors),
     "help": lambda args: help()
 }
 
 def main():
     global display_history
     display_history = bios_post(screen, render_lines)
-    input_text = ""
+
+    install_file_path = os.path.join(constants.STORAGE_PATH, "install.txt")
+    should_skip = os.path.exists(install_file_path)
+
+    # Pass the skip boolean to your setup function
+    commands.vsdos_setup(render_lines, colors, skip=should_skip)
+
+    input_text = "" 
+
     pygame.display.set_caption("VS-DOS Prompt")
     
     while True:
