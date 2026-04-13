@@ -257,7 +257,7 @@ def vsdos_setup(render_lines, colors, skip=False):
     install_lines2 = [
         "",
         "",
-        "This will format drive C, are you sure to continue?",
+        "This will format the drive, are you sure to continue?",
         "",
         "Press C to format the drive",
         "",
