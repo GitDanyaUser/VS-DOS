@@ -8,7 +8,6 @@ __pycache__/
 
 # Script
 fonts/filestorage.json
-gui_*.py
 
 # Distribution / packaging
 .Python
