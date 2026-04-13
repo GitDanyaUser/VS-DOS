@@ -6,9 +6,6 @@ __pycache__/
 # C extensions
 *.so
 
-# Script
-fonts/filestorage.json
-
 # Distribution / packaging
 .Python
 build/
@@ -29,6 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+storage/
 
 # PyInstaller
 *.manifest

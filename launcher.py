@@ -30,8 +30,8 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 def main():
-    eslogo = pygame.image.load("fonts/epa.png").convert_alpha()
-    eslogo = pygame.transform.scale(eslogo, (150, 100))
+    eslogo = pygame.image.load(resource_path("fonts/epa.png")).convert_alpha()
+    eslogo = pygame.transform.scale(eslogo, (160, 100))
     logo_rect = eslogo.get_rect(topright=(screen.get_width() - 10, 10))
     lines = [
         f"{get_sys_info()['BIOS']}, An Energy Star Ally",
@@ -64,8 +64,8 @@ if __name__ == "__main__":
                     main.main()
                 elif event.key == pygame.K_2:
                     # Launch GUI Test
-                    import gui_colorful_test
-                    gui_colorful_test.main()
+                    import gui_stuff
+                    gui_stuff.main()
                 elif event.key == pygame.K_3:
                     # Enter Setup
                     import bios

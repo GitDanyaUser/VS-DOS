@@ -1,59 +1,67 @@
-import json
 import os
+import bios
+import constants
 
-VFS_PATH = "fonts/filestorage.json"
+# --- CONFIGURATION ---
+BASE_DIR = constants.BASE_DIR
+STORAGE_NAME = constants.STORAGE_NAME
+STORAGE_PATH = constants.STORAGE_PATH
 
 def init_vfs():
-    """Creates the disk if it doesn't exist."""
-    if not os.path.exists(VFS_PATH):
-        empty_vfs = {
-            "metadata": {
-                "label": "VS-DOS_C",
-                "total_size_bytes": __import__("bios").get_sys_info()["HDD"] * 1024 * 1024,
-                "used_size_bytes": 0
-            },
-            "files": {
+    """Initializes the physical directory structure."""
+    if not os.path.exists(STORAGE_PATH):
+        try:
+            os.makedirs(STORAGE_PATH)
+            
+            default_layout = {
                 "autoexec.bat": "ECHO OFF\nVER",
                 "config.sys": "FILES=30\nBUFFERS=20",
-                "readme.txt": "Welcome to VS-DOS Beta 2!\nThis is a virtual disk drive C: used for testing file operations.\nFeel free to modify or add files here."
-            },
-            "folders": {
-                "dos": {
-                    "files": {
-                        "edit.com": "This is a placeholder for the edit.com executable file.",
-                        "mouse.sys": "This is a placeholder for the mouse.sys driver file."
-                    },
-                    "folders": {}
-                },
-                "temp": {}
+                "command.com": "Placeholder for command.com shell",
+                "readme.txt": "Welcome to VS-DOS! This is an open-source DOS simulator, and right now you experiencing file system!\nYou can edit or add files via your OS file manager into the storage/ folder.",
+                "dos": None,
+                "dos/edit.com": "Placeholder for edit.com executable.",
+                "dos/mouse.sys": "Placeholder for mouse.sys driver.",
+                "dos/msdos.sys": "Placeholder for msdos.sys library",
+                "dos/io.sys": "Placeholder for io.sys library",
+                "temp": None
             }
-        }
-        save_vfs(empty_vfs)
-        return "Disk drive C: initialized."
-    return "Disk drive C: ready."
 
-def save_vfs(vfs):
-    with open(VFS_PATH, "w") as f:
-        json.dump(vfs, f, indent=4)
+            for path, content in default_layout.items():
+                full_path = os.path.join(STORAGE_PATH, path)
+                
+                if content is None:
+                    os.makedirs(full_path, exist_ok=True)
+                else:
+                    # Ensure parent directories exist
+                    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                    with open(full_path, "w") as f:
+                        f.write(content)
 
-def load_vfs():
-    if os.path.exists(VFS_PATH):
-        with open(VFS_PATH, "r") as f:
-            return json.load(f)
-    else:
-        return None
-
-def update_used_space(vfs):
-    total = 0
-    def calculate(node):
-        nonlocal total
-        # Files are just strings, so f is the content
-        for f in node.get("files", {}).values():
-            total += len(str(f))
-
-        # Recurse into folders
-        for fld in node.get("folders", {}).values():
-            calculate(fld)
+            return f"Drive C: initialized in ./{STORAGE_NAME}/"
+        except Exception as e:
+            return f"Disk Error: Could not create storage directory. ({e})"
             
-    calculate(vfs)
-    vfs["metadata"]["used_size_bytes"] = total
+    return "Drive C: ready."
+
+def get_vfs_metadata():
+    """
+    Calculates disk usage based on BIOS HDD size.
+    Returns sizes in bytes.
+    """
+    # HDD size in MB from BIOS converted to Bytes
+    total_capacity = bios.get_sys_info()["HDD"] * 1024 * 1024
+    used_bytes = 0
+
+    if os.path.exists(STORAGE_PATH):
+        for root, dirs, files in os.walk(STORAGE_PATH):
+            for name in files:
+                fp = os.path.join(root, name)
+                # Physical size on your real hard drive
+                used_bytes += os.path.getsize(fp)
+
+    return {
+        "label": "VS-DOS_C",
+        "total": total_capacity,
+        "used": used_bytes,
+        "free": max(0, total_capacity - used_bytes)
+    }

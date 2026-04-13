@@ -2,6 +2,10 @@ import os
 
 FONT_PATH = os.path.join("fonts", "Px437_IBM_VGA_8x16.ttf")
 FONT_SIZE = 16
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STORAGE_NAME = "storage"
+STORAGE_PATH = os.path.join(BASE_DIR, STORAGE_NAME)
+SYSTEM_FILES = ["autoexec.bat", "config.sys", "command.com", "io.sys", "msdos.sys"]
 
 colors = {
     "black": (0, 0, 0),

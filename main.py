@@ -6,26 +6,25 @@ from bios import get_sys_info, bios_post
 import constants
 import re
 import vfsinit
+import commands
 
 FONT_PATH = constants.FONT_PATH
 FONT_SIZE = constants.FONT_SIZE
-VFS_PATH = vfsinit.VFS_PATH
 
+# --- INITIALIZATION ---
 vfsinit.init_vfs()
-vfs = vfsinit.load_vfs()
-vfsinit.update_used_space(vfs)
-vfsinit.save_vfs(vfs)
-current_path = [] # C:\
+current_path = []  # Empty list represents Root (C:\)
 
-def get_cur_node():
-    # This tells Python to look for the variables defined outside the function
-    node = vfs
-    for folder in current_path:
-        if folder in node["folders"]:
-            node = node["folders"][folder]
-    return node
+def get_real_current_path():
+    """Helper to get the physical path for the current virtual directory."""
+    # Joins 'storage/' with the folders in our current_path list
+    return os.path.join(constants.STORAGE_PATH, *current_path)
 
 pygame.init()
+print("Pygame initiated")
+# Initialize Pygame and the Mixer
+pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+print("Mixer initiated (2 channels)")
 
 screen = pygame.display.set_mode((640, 480))
 pygame.display.set_caption("VS-DOS Prompt")
@@ -120,35 +119,57 @@ def bsod(code="0x0000003b", code_desc="SYSTEM_SERVICE_EXCEPTION"):
                 pygame.quit()
                 sys.exit()
 
-bsod_commands = [
+BSOD_COMMANDS = [
     "con\\con",
     "intl h int6h",
     "intl l int6h"
 ]
 
 def dirlist():
-    node = get_cur_node()
-    out = [f" Directory of C:\\" + "\\".join(current_path), ""]
+    real_path = get_real_current_path()
+    v_path_str = "\\".join(current_path)
+    out = [f" Directory of C:\\{v_path_str}", ""]
     
-    # List Folders
-    for fld in node.get("folders", {}):
-        out.append(f"{fld.upper():<12} <DIR>")
-    
-    # List Files - fdata is just a string now!
-    for fname, fdata in node.get("files", {}).items():
-        size = len(str(fdata))
-        out.append(f"{fname.upper():<12} {size:>8} bytes")
+    try:
+        # Get all entries and convert to a list so we can sort them
+        entries = list(os.scandir(real_path))
         
+        # Grouping Logic: 
+        # We sort by (is_file, name). Since False < True, 
+        # Directories (is_file=False) will naturally come before Files (is_file=True).
+        entries.sort(key=lambda e: (e.is_file(), e.name.lower()))
+
+        for entry in entries:
+            if entry.is_dir():
+                out.append(f"{entry.name.upper():<12} <DIR>")
+            else:
+                size = entry.stat().st_size
+                out.append(f"{entry.name.upper():<12} {size:>8} bytes")
+                
+    except FileNotFoundError:
+        return ["Error: Current directory missing from disk."]
+        
+    # Footer
+    stats = vfsinit.get_vfs_metadata()
+    out.append("")
+    out.append(f"{len([e for e in entries if not e.is_dir()]):>5} File(s) {stats['used']:>12} bytes")
+    out.append(f"{len([e for e in entries if e.is_dir()]):>5} Dir(s)  {stats['free']:>12} bytes free")
+    
     return out
 
 def change_dir(args):
-    if not args: return f"C:\\{'\\'.join(current_path)}"
-    target = args[0].lower()
-    node = get_cur_node()
+    if not args: 
+        return f"C:\\{'\\'.join(current_path)}"
     
+    target = args[0].lower()
     if target == "..":
-        if current_path: current_path.pop()
-    elif target in node["folders"]:
+        if current_path:
+            current_path.pop()
+        return None
+    
+    # Check if the folder exists physically
+    potential_path = os.path.join(get_real_current_path(), target)
+    if os.path.exists(potential_path) and os.path.isdir(potential_path):
         current_path.append(target)
     else:
         return "Invalid directory."
@@ -157,31 +178,26 @@ def cmd_type(args):
     if not args: return "Filename required."
     
     filename = args[0].lower()
-    node = get_cur_node()
+    file_path = os.path.join(get_real_current_path(), filename)
     
-    if filename in node["files"]:
-        content = node["files"][filename]
-        return content.split("\n")
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        with open(file_path, "r") as f:
+            raw_lines = f.readlines()
+            
+        final_output = []
+        for line in raw_lines:
+            # Wrap each line from the file to fit the screen width
+            wrapped = wrap_text(line.strip(), dos_font, 635)
+            final_output.extend(wrapped)
+        return final_output
     
     return "File not found."
-
-def colortest():
-    color_names = constants.get_color_names()
-    lines = ["== IBM VGA 16 Color Test =="]
-    for color in color_names:
-        lines.append(f'COL_SHOW:{color};"████████ {color.upper()}"')
-    lines.append("============================")
-    return lines
 
 def colortest_256():
     screen.fill(colors["black"])
     pygame.display.flip()
     time.sleep(0.5)
     bsod(code="0x00000116", code_desc="VIDEO_TDR_FAILURE")
-
-def editor(args):
-    # TODO: Implement in Beta 3
-    return "We're sorry, but the editor is not implemented, modify filestorage.json directly."
 
 def help():
     return [
@@ -193,8 +209,10 @@ def help():
         "DIR - List files and folders in current directory",
         "TYPE [filename] - Show contents of a file",
         "CD [folder] - Change directory",
-        "COLORTEST - Display color test blocks",
-        "EDITOR [filename] - Open file in editor (Not Implemented)",
+        "DEL [filename] - Delete a file",
+        "GPUTEST - Test GPU capabilities",
+        "EDIT [filename] - Open file in editor",
+        "MGMT - Open statistic"
         "HELP - Show this help message",
         "EXIT - Shutdown this computer"
     ]
@@ -206,15 +224,19 @@ COMMANDS = {
         f"BIOS: {get_sys_info()['BIOS']}",
         f"CPU: {get_sys_info()['CPU']}",
         f"RAM: {get_sys_info()['RAM']} KB",
-        f"HDD: {get_sys_info()['HDD']} MB"
+        f"HDD Total: {vfsinit.get_vfs_metadata()['total'] // (1024*1024)} MB",
+        f"HDD Free: {vfsinit.get_vfs_metadata()['free']}"
     ],
     "echo": lambda args: [" ".join(args)],
     "dir": lambda args: dirlist(),
     "type": lambda args: cmd_type(args) if args else "Filename required.",
     "cd": lambda args: change_dir(args),
-    "colortest": lambda args: display_history.append("Make sure your monitor supports 16 colors!") or render_lines(display_history) or time.sleep(3) or colortest(),
-    "colortest/256color": lambda args: display_history.append("Make sure your monitor supports 256 colors!") or render_lines(display_history) or time.sleep(3) or colortest_256(),
-    "editor": lambda args: editor(args),
+    "gputest/256color": lambda args: colortest_256(),
+    "edit": lambda args: commands.editor(render_lines, screen, dos_font, colors, get_real_current_path(), args),
+    "time": lambda args: display_history.append(commands.timetell()),
+    "gputest": lambda args: commands.gputest(render_lines, colors),
+    "del": lambda args: commands.delete(get_real_current_path(), args),
+    "mgmt": lambda args: commands.mgmt(screen, colors),
     "help": lambda args: help()
 }
 
@@ -246,7 +268,7 @@ def main():
                             result = COMMANDS[base](args)
                             if isinstance(result, list): display_history.extend(result)
                             elif isinstance(result, str): display_history.append(result)
-                        elif base in bsod_commands:
+                        elif base in BSOD_COMMANDS:
                             if base == "con\\con":
                                 bsod(code="0x0000003b", code_desc="SYSTEM_SERVICE_EXCEPTION")
                             else:

@@ -36,7 +36,7 @@ def draw_button(surface, text, x, y, w, h, pressed=False):
     text_rect = text_surf.get_rect(center=(x + w//2, y + h//2))
     surface.blit(text_surf, text_rect)
 
-def draw_window(surface, title, x, y, w, h):
+def draw_window(win_font, surface, title, x, y, w, h, close=True):
     # Main Window Body
     pygame.draw.rect(surface, colors["light_gray"], (x, y, w, h))
     pygame.draw.rect(surface, colors["black"], (x, y, w, h), 1) # Thin border
@@ -47,9 +47,10 @@ def draw_window(surface, title, x, y, w, h):
     surface.blit(title_surf, (x + 5, y + 4))
     
     # Close Button (The little minus sign in 3.1)
-    pygame.draw.rect(surface, colors["light_gray"], (x+w-20, y+4, 16, 16))
-    pygame.draw.rect(surface, colors["black"], (x+w-20, y+4, 16, 16), 1)
-    pygame.draw.line(surface, colors["black"], (x+w-16, y+12), (x+w-8, y+12), 2)
+    if close:
+        pygame.draw.rect(surface, colors["light_gray"], (x+w-20, y+4, 16, 16))
+        pygame.draw.rect(surface, colors["black"], (x+w-20, y+4, 16, 16), 1)
+        pygame.draw.line(surface, colors["black"], (x+w-16, y+12), (x+w-8, y+12), 2)
 
 def main():
     btn_pressed = False
@@ -76,7 +77,7 @@ def main():
         screen.fill(colors["light_cyan"])
         
         # Draw a "Program Manager" style window
-        draw_window(screen, "VS-DOS Default Manager", 120, 100, 400, 250)
+        draw_window(win_font, screen, "VS-DOS Default Manager", 120, 100, 400, 250)
         
         # Draw some content inside the window
         msg = small_font.render("System Color Palette Diagnostic", True, colors["black"])

@@ -3,6 +3,7 @@ import time
 import winsound
 import pygame
 import constants
+from sound import play_beep
 
 colors = constants.colors
 
@@ -10,11 +11,12 @@ def get_sys_info():
     return {
         "BIOS": "Award Modular BIOS v6.00PG",
         "BIOS2": "Copyright (C) 1984-99, Award Software, Inc.",
-        "VGABIOS": "Phoenix Technologies Ltd. VGA BIOS v1.0",
+        "VGABIOS": "S3 Trio64V Generic VGA BIOS (1.03-06)",
+        "GPU": "S3 Trio64V+",
         "CPU": "I486DX4 100MHz(33x3)",
-        "RAM": 64000, 
-        "HDD": 512,
-        "OS": "VS-DOS Beta 2 rev. 3"
+        "RAM": 64000, #B
+        "HDD": 512, #MB
+        "OS": "VS-DOS Beta 3 rev. 1"
     }
 
 def bios_post(screen, render_lines):
@@ -23,7 +25,7 @@ def bios_post(screen, render_lines):
     
     # Load and scale the logo
     eslogo = pygame.image.load("fonts/epa.png").convert_alpha()
-    eslogo = pygame.transform.scale(eslogo, (150, 100))
+    eslogo = pygame.transform.scale(eslogo, (160, 100))
     logo_rect = eslogo.get_rect(topright=(screen.get_width() - 10, 10))
 
     lines = [
@@ -50,7 +52,7 @@ def bios_post(screen, render_lines):
         refresh()
         time.sleep(0.05)
     
-    winsound.Beep(1000, 500)
+    play_beep(frequency=1000, duration=500)
 
     # 2. Add Plug and Play info
     lines.extend([
@@ -139,7 +141,7 @@ def bios_setup(screen, render_lines):
             if event.type == pygame.KEYDOWN:
                 if not show_confirm:
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_F10:
-                        winsound.Beep(800, 50) # Tiny feedback beep
+                        play_beep(frequency=800, duration=50) # Tiny feedback beep
                         show_confirm = True
                 else:
                     # Logic for the confirmation box
