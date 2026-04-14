@@ -15,7 +15,7 @@ def get_sys_info():
         "CPU": "I486DX4 100MHz(33x3)",
         "RAM": 64000, #B
         "HDD": 512, #MB
-        "OS": "VS-DOS 0.1 rev. 2"
+        "OS": "VS-DOS 0.1 rev. 3"
     }
 
 def bios_post(screen, render_lines):

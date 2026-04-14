@@ -36,7 +36,7 @@ def draw_button(surface, text, x, y, w, h, pressed=False):
     text_rect = text_surf.get_rect(center=(x + w//2, y + h//2))
     surface.blit(text_surf, text_rect)
 
-def draw_window(win_font, surface, title, x, y, w, h, close=True):
+def draw_window(surface, title, x, y, w, h, close=True):
     # Main Window Body
     pygame.draw.rect(surface, colors["light_gray"], (x, y, w, h))
     pygame.draw.rect(surface, colors["black"], (x, y, w, h), 1) # Thin border
@@ -52,54 +52,16 @@ def draw_window(win_font, surface, title, x, y, w, h, close=True):
         pygame.draw.rect(surface, colors["black"], (x+w-20, y+4, 16, 16), 1)
         pygame.draw.line(surface, colors["black"], (x+w-16, y+12), (x+w-8, y+12), 2)
 
-def main():
-    btn_pressed = False
+def draw_window2(surface, title, x, y, w, h, close=True):
+    # Main Window Body
+    pygame.draw.rect(surface, colors["light_gray"], (x, y, w, h))
     
-    while True:
-        mouse_pos = pygame.mouse.get_pos()
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # Check if clicking the "OK" button
-                if 270 <= mouse_pos[0] <= 370 and 300 <= mouse_pos[1] <= 330:
-                    btn_pressed = True
-            
-            if event.type == pygame.MOUSEBUTTONUP:
-                if btn_pressed:
-                    print("OK Clicked!")
-                    btn_pressed = False
-
-        # --- Rendering ---
-        screen.fill(colors["light_cyan"])
-        
-        # Draw a "Program Manager" style window
-        draw_window(win_font, screen, "VS-DOS Default Manager", 120, 100, 400, 250)
-        
-        # Draw some content inside the window
-        msg = small_font.render("System Color Palette Diagnostic", True, colors["black"])
-        screen.blit(msg, (140, 135))
-        
-        msg2 = win_font.render("This text will be coloured red", True, colors["red"])
-        screen.blit(msg2, (140, 220))
-        msg3 = win_font.render("This text will be coloured green", True, colors["green"])
-        screen.blit(msg3, (140, 240))
-        msg4 = win_font.render("This text will be coloured blue", True, colors["blue"])
-        screen.blit(msg4, (140, 260))
-
-        # Draw small color swatches (Visualizing your colors dict)
-        swatch_colors = [colors["light_red"], colors["light_green"], colors["light_blue"], colors["yellow"], colors["light_magenta"], colors["light_cyan"]]
-        for i, color in enumerate(swatch_colors):
-            pygame.draw.rect(screen, color, (140 + (i*50), 160, 40, 40))
-            pygame.draw.rect(screen, colors["black"], (140 + (i*50), 160, 40, 40), 1)
-
-        # Draw interactive button
-        draw_button(screen, "OK", 270, 300, 100, 30, btn_pressed)
-        
-        pygame.display.flip()
-
-if __name__ == "__main__":
-    main()
+    # Title Bar
+    pygame.draw.rect(surface, colors["black"], (x+2, y+2, w-4, 20))
+    title_surf = win_font.render(title, True, colors["white"])
+    surface.blit(title_surf, (x + 5, y + 4))
+    
+    # Close Button
+    if close:
+        closex = win_font.render("X", True, colors["light_red"])
+        surface.blit(closex, (x+w-20, y+4, 16, 16))

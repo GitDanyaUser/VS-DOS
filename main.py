@@ -233,11 +233,12 @@ COMMANDS = {
     "type": lambda args: cmd_type(args) if args else "Filename required.",
     "cd": lambda args: change_dir(args),
     "gputest/256color": lambda args: colortest_256(),
-    "edit": lambda args: commands.editor(render_lines, screen, dos_font, colors, get_real_current_path(), args),
+    "edit": lambda args: commands.editor(screen, dos_font, colors, get_real_current_path(), args),
     "time": lambda args: display_history.append(commands.timetell()),
     "gputest": lambda args: commands.gputest(render_lines, colors),
     "del": lambda args: commands.delete(get_real_current_path(), args),
     "stat": lambda args: commands.stat(screen, colors),
+    "vsgwm": lambda args: commands.vsgwm(screen, colors),
     "help": lambda args: help()
 }
 

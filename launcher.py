@@ -7,6 +7,7 @@ import constants
 
 FONT_PATH = constants.FONT_PATH
 FONT_SIZE = constants.FONT_SIZE
+colors = constants.colors
 
 pygame.init()
 
@@ -41,9 +42,8 @@ def main():
         'COL_SHOW:white;"BOOT MENU"',
         "",
         f'COL_SHOW:white;"1. " light_gray;"Disk C: ({get_sys_info()["OS"]}) [BOOT]"',
-        'COL_SHOW:white;"2. " light_gray;"Disk D: (GUI Color Test)"',
-        'COL_SHOW:white;"3. " light_gray;"Enter Setup"',
-        'COL_SHOW:white;"4. " light_gray;"Shutdown"'
+        'COL_SHOW:white;"2. " light_gray;"Enter Setup"',
+        'COL_SHOW:white;"3. " light_gray;"Shutdown"'
     ]
     render_lines(lines)
     screen.blit(eslogo, logo_rect)
@@ -62,14 +62,10 @@ if __name__ == "__main__":
                     import main
                     main.main()
                 elif event.key == pygame.K_2:
-                    # Launch GUI Test
-                    import gui_stuff
-                    gui_stuff.main()
-                elif event.key == pygame.K_3:
                     # Enter Setup
                     import bios
                     bios.bios_setup(screen, render_lines)
-                elif event.key == pygame.K_4:
+                elif event.key == pygame.K_3:
                     # Shutdown
                     pygame.quit()
                     sys.exit()

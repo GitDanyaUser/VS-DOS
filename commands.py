@@ -59,19 +59,12 @@ def gputest(render_lines, colors: dict):
                 if event.key == pygame.K_RETURN:
                     waiting = False
 
-def editor(render_lines, screen, dos_font, colors, current_phys_path, args):
+def editor(screen, dos_font, colors, current_phys_path, args):
     if not args: return "Usage: EDIT [filename]"
     
     filename = args[0].lower()
     file_path = os.path.join(current_phys_path, filename)
-    boot_lines = [
-        "DOS Edit v1.0",
-        "DEBUG: Disabled",
-        "DRIVE: C",
-        f"SYSTEM: {get_sys_info()["OS"]}"
-    ]
-    render_lines(boot_lines, colors["blue"], colors["white"])
-    sleep(1)
+
     content = ""
     if os.path.exists(file_path):
         with open(file_path, "r") as f:
@@ -161,7 +154,7 @@ def delete(current_phys_path, args):
 
 def stat(screen, colors):
     screen.fill(colors["blue"])
-    gui_stuff.draw_window(win_font, screen, "Stat Manager", 0, 0, 640, 480, close=False)
+    gui_stuff.draw_window(screen, "Stat Manager", 0, 0, 640, 480, close=False)
     msg = win_font.render(f"RAM: {get_sys_info()["RAM"] // 1024}KB", True, colors["black"])
     screen.blit(msg, (30, 30))
     msg2 = win_font.render(f"CPU: {get_sys_info()["CPU"]}", True, colors["black"])
@@ -209,6 +202,7 @@ def vsdos_setup(render_lines, colors, skip=False):
                     if event.key == pygame.K_ESCAPE:
                         ask = [
                             "Are you sure to cancel the installation process?",
+                            "",
                             "Press Y to exit the wizard",
                             "Press N to return"
                         ]
@@ -299,7 +293,7 @@ def vsdos_setup(render_lines, colors, skip=False):
             f"Copying files...",
             f"Target: {fname}",
             "",
-            "Please wait as setup copying all of the essential files"
+            "Please wait as setup copying files"
         ]
         render_lines(add_lines(wait_lines2), colors["blue"], colors["white"])
         sleep(1.5)
@@ -307,3 +301,108 @@ def vsdos_setup(render_lines, colors, skip=False):
     wait_for_input(install_lines3)
     with open(os.path.join(constants.STORAGE_PATH, "install.txt"), "w") as f:
         f.write("Delete me if you want to see installer again")
+
+def vsgwm(screen, colors):
+    screen.fill(colors["light_gray"])
+    gui_stuff.draw_window2(screen, "VS-DOS Graphical Window Manager", 0, 0, 640, 480, close=False)
+
+    msg = win_font.render("This feautire is not implemented yet, come back in v1.0.0!", True, colors["black"])
+    screen.blit(msg, (10, 30))
+
+    pygame.display.flip()
+    sleep(3)
+
+def settings(render_lines, colors):
+    def lines_right(lines, spaces=5):
+        return [" " * spaces + line for line in lines]
+
+    def add_lines(lines):
+        return top_lines + lines_right(lines)
+    
+    def wait_for_input(current_screen, target_key=None):
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                
+                # Check for KEYDOWN first to avoid AttributeErrors
+                if event.type == pygame.KEYDOWN:
+                    # ESCAPE HANDLER
+                    if event.key == pygame.K_ESCAPE:
+                        ask = [
+                            "Are you sure to cancel the process?",
+                            "",
+                            "Press Y to exit",
+                            "Press N to return"
+                        ]
+                        render_lines(ask, colors["blue"], colors["white"])
+                        
+                        waiting2 = True
+                        while waiting2:
+                            for ev in pygame.event.get():
+                                if ev.type == pygame.QUIT:
+                                    pygame.quit()
+                                    sys.exit()
+                                if ev.type == pygame.KEYDOWN:
+                                    if ev.key == pygame.K_y:
+                                        pygame.quit()
+                                        sys.exit()
+                                    elif ev.key == pygame.K_n:
+                                        render_lines(top_lines + lines_right(current_screen), colors["blue"], colors["white"])
+                                        waiting2 = False
+                    
+                    # Target key logic (only runs if KEYDOWN)
+                    if target_key is None:
+                        if event.key == pygame.K_RETURN:
+                            waiting = False
+                            return event.key
+                    elif event.key == target_key:
+                        waiting = False
+                        return event.key
+
+    top_lines = [
+        "===============",
+        " VS-DOS Setup",
+        "===============",
+    ]
+    setup_lines = [
+        "",
+        "",
+        "Welcome to the VS-DOS!",
+        "This wizard will guide you through the setting up VS-DOS",
+        "",
+        "This wizard will allow you to manage the current install of VS-DOS",
+        "",
+        "Press Enter to setup",
+        "",
+        "Press ESC to exit"
+    ]
+    setup_lines2 = [
+        "",
+        "",
+        "Choose what you want to change:"
+        "",
+        "1. Keyboard type",
+        "2. GPU Settings",
+        "",
+        "Press ESC to exit"
+    ]
+    setup_keyboard = [
+        "",
+        "",
+        "Choose your keyboard type:",
+        "",
+        "1. PS/2 keyboard",
+        "2. AT keyboard",
+        "",
+        "Press ESC to exit"
+    ]
+    setup_gpu = [
+        "",
+        "",
+        "Your GPU doesn't support advanced settings (without drivers)"
+    ]
+    render_lines(add_lines(setup_lines), colors["blue"], colors["white"])
+    wait_for_input(setup_lines)
