@@ -64,4 +64,4 @@ Thanks int10h.org for fonts!
 
 ## License
 
-MIT License
+GPL-3.0 License
