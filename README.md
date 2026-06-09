@@ -1,6 +1,6 @@
 # VS-DOS
 
-[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![GitHub release](https://img.shields.io/github/v/release/GitDanyaUser/VS-DOS.svg)](https://GitHub.com/GitDanyaUser/VS-DOS/) [![GitHub latest commit](https://badgen.net/github/last-commit/GitDanyaUser/VS-DOS)](https://GitHub.com/GitDanyaUser/VS-DOS/commit/)
+[![made-with-python](https://img.shields.io/badge/Made%20with-Python-1f425f.svg)](https://www.python.org/) [![GitHub release](https://img.shields.io/github/release/GitDanyaUser/VS-DOS.svg)](https://GitHub.com/GitDanyaUser/VS-DOS/) [![GitHub latest commit](https://badgen.net/github/last-commit/GitDanyaUser/VS-DOS)](https://GitHub.com/GitDanyaUser/VS-DOS/commit/)
 
 A retro-inspired DOS simulator written in Python using `pygame`.
 
