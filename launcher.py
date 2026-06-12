@@ -21,9 +21,8 @@ except:
     dos_font = pygame.font.SysFont("monospace", FONT_SIZE)
 
 def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        # Get the absolute path to the resource
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")

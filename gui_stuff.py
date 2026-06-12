@@ -55,6 +55,7 @@ def draw_window(surface, title, x, y, w, h, close=True):
 def draw_window2(surface, title, x, y, w, h, close=True):
     # Main Window Body
     pygame.draw.rect(surface, colors["light_gray"], (x, y, w, h))
+    pygame.draw.rect(surface, colors["black"], (x, y, w, h), 1) # Thin border
     
     # Title Bar
     pygame.draw.rect(surface, colors["black"], (x+2, y+2, w-4, 20))
@@ -65,3 +66,18 @@ def draw_window2(surface, title, x, y, w, h, close=True):
     if close:
         closex = win_font.render("X", True, colors["light_red"])
         surface.blit(closex, (x+w-20, y+4, 16, 16))
+
+def draw_fixed_list(surface, items, x, y, w, h, bg_color=colors["white"], border=True, text_color=colors["black"]):
+    pygame.draw.rect(surface, bg_color, (x, y, w, h))
+    if border:
+        pygame.draw.rect(surface, colors["black"], (x, y, w, h), 1) # Border
+    for i, item in enumerate(items):
+        item_surf = win_font.render(item, True, text_color)
+        surface.blit(item_surf, (x + 5, y + 5 + i*20))
+
+def draw_block(surface, x, y, w, h, color):
+    pygame.draw.rect(surface, color, (x, y, w, h))
+
+def draw_progress_bar(surface, x, y, w, h, progress):
+    pygame.draw.rect(surface, colors["light_gray"], (x, y, w, h))
+    pygame.draw.rect(surface, colors["blue"], (x+2, y+2, int((w-4)*progress), h-4))

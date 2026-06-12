@@ -1,7 +1,7 @@
 import sys
 import pygame
 import datetime
-from bios import get_sys_info
+from bios import get_sys_info, bios_post
 import time
 import constants
 import os
@@ -302,12 +302,108 @@ def vsdos_setup(render_lines, colors, skip=False):
     with open(os.path.join(constants.STORAGE_PATH, "install.txt"), "w") as f:
         f.write("Delete me if you want to see installer again")
 
-def vsgwm(screen, colors):
+def vsshell(screen, colors):
     screen.fill(colors["light_gray"])
     gui_stuff.draw_window2(screen, "VS-DOS Graphical Window Manager", 0, 0, 640, 480, close=False)
 
-    msg = win_font.render("This feautire is not implemented yet, come back in v1.0.0!", True, colors["black"])
+    msg = win_font.render("This feature is not implemented yet, come back in v1.0.0!", True, colors["black"])
     screen.blit(msg, (10, 30))
+    msg2 = win_font.render("Press Enter to return to shell", True, colors["black"])
+    screen.blit(msg2, (10, 440))
 
+    msg3 = win_font.render("For now, look at this cool elements!", True, colors["black"])
+    screen.blit(msg3, (10, 60))
+
+    gui_stuff.draw_button(screen, "Button 1", 10, 100, 120, 30)
+
+    gui_stuff.draw_fixed_list(screen, ["Item 1", "Item 2", "Item 3", "Item 4"], 10, 150, 200, 100)
+    
+    gui_stuff.draw_window2(screen, "Nested Window", 300, 100, 200, 150)
+
+    gui_stuff.draw_block(screen, 300, 300, 100, 100, colors["light_red"])
     pygame.display.flip()
-    sleep(4)
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting = False
+
+def diag(screen, render_lines, colors):
+    bios_post(screen, render_lines)
+
+    top_lines = [
+        "===============================",
+        " VS-DOS Diagnostic Environment",
+        "==============================="
+    ]
+
+    def lines_right(lines, spaces=5):
+        return [" " * spaces + line for line in lines]
+
+    def add_lines(lines):
+        return top_lines + lines_right(lines)
+    
+    def wait_for_input(target_keys=[pygame.K_RETURN, pygame.K_ESCAPE]):
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.KEYDOWN:
+                    if event.key in target_keys:
+                        return event.key
+                        waiting = False
+        
+    diag_lines = [
+        "",
+        "",
+        "Welcome to the VS-DOS Diagnostic Environment!",
+        "Use this environment to test your hardware and troubleshoot issues.",
+        "",
+        "Press 1 to see GPU information",
+        "Press 2 to see common hardware information",
+        "Press ESC to return to the shell"
+    ]
+    render_lines(add_lines(diag_lines), colors["blue"], colors["white"])
+    key = wait_for_input(target_keys=[pygame.K_1, pygame.K_2, pygame.K_ESCAPE])
+    if key == pygame.K_ESCAPE:
+        pass
+    elif key == pygame.K_1:
+        gpu_lines = [
+            "",
+            "",
+            f"GPU: {get_sys_info()['GPU']}",
+            f"VGA BIOS: {get_sys_info()['VGABIOS']}",
+            "",
+            "Supported Resolutions:",
+            "- 640x480 @ 16 colors",
+            "- 320x200 @ 16 colors",
+            "- 80x25 text mode",
+            "",
+            "Driver: vgadrvr.sys",
+            "Driver: Generic VGA Driver (inside vsdos.sys)",
+            "",
+            "No hardware issues detected.",
+            "",
+            "Press Enter to return to the shell"
+        ]
+        render_lines(add_lines(gpu_lines), colors["blue"], colors["white"])
+        wait_for_input()
+    elif key == pygame.K_2:
+        sys_lines = [
+            "",
+            "",
+            f"CPU: {get_sys_info()['CPU']}",
+            f"RAM: {get_sys_info()['RAM'] // 1024}KB",
+            f"HDD Total: {get_sys_info()['HDD']}MB",
+            f"HDD Free: {vfsinit.get_vfs_metadata()['free'] // (1024*1024)}MB",
+            "",
+            "Press Enter to return to the shell"
+        ]
+        render_lines(add_lines(sys_lines), colors["blue"], colors["white"])
+        wait_for_input()

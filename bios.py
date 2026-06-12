@@ -13,9 +13,9 @@ def get_sys_info():
         "VGABIOS": "S3 Trio64V Generic VGA BIOS (1.03-06)",
         "GPU": "S3 Trio64V+",
         "CPU": "I486DX4 100MHz(33x3)",
-        "RAM": 64000, #B
+        "RAM": 128000, #B
         "HDD": 512, #MB
-        "OS": "VS-DOS 0.1 rev. 3"
+        "OS": "VS-DOS 0.2 rev. 1"
     }
 
 def bios_post(screen, render_lines):
@@ -49,7 +49,7 @@ def bios_post(screen, render_lines):
     for i in range(0, info["RAM"] + 1, 4096):
         lines[6] = f"Memory Test: {i} KB OK"
         refresh()
-        sleep(0.05)
+        sleep(0.02)
     
     play_beep(frequency=1000, duration=200)
 
@@ -78,75 +78,50 @@ def bios_post(screen, render_lines):
     refresh()
     
     sleep(2)
-    return [f"{info['OS']} - MIT License, GitDanyaUser", ""]
+    return [f"{info['OS']} - GPL-3.0 License, GitDanyaUser", ""]
 
 def bios_setup(screen, render_lines):
-    pygame.display.set_caption("Award Modular BIOS v6.00PG Setup Utility")
-
-    def draw_text_centered(text, center):
-        font = pygame.font.Font(constants.FONT_PATH, constants.FONT_SIZE)
-        text_surf = font.render(text, True, colors["white"])
-        text_rect = text_surf.get_rect(center=center)
-        screen.blit(text_surf, text_rect)
-    
-    lines = [
-        "ROM PCI/ISA BIOS (2A69HQ1A)",
-        "CMOS SETUP UTILITY",
-        "AWARD SOFTWARE, INC.",
-        "",
-        " STANDARD CMOS SETUP           INTEGRATED PERIPHERALS",
-        " BIOS FEATURES SETUP           PC HEALTH STATUS",
-        " CHIPSET FEATURES SETUP        LOAD FAIL-SAFE DEFAULTS",
-        " POWER MANAGEMENT SETUP        LOAD OPTIMIZED DEFAULTS",
-        " PNP/PCI CONFIGURATION         SET PASSWORD",
-        " LOAD BIOS DEFAULTS            SAVE & EXIT SETUP",
-        " LOAD SETUP DEFAULTS           EXIT WITHOUT SAVING",
-        "",
-        " Esc : Quit                    ↑ ↓ → ← : Select Item",
-        " F10 : Save & Exit Setup       (Shift)F2 : Change Color"
+    #TODO: Add saving, loading, changing settings and styling
+    pygame.display.set_caption("Award Modular BIOS v6.00PG Setup")
+    top_lines = [
+        "CMOS Setup Utility - Copyright (C) 1984-1999 Award Software",
+        "MODDED - REMOVE STYLING" # Styling is hard to do
     ]
+    
+    def choose(available_opts):
+        selected = 0
+        while True:
+            render_lines(top_lines + [""] + [f"{'>' if i == selected else ' '} {opt}" for i, opt in enumerate(available_opts)], bg_color=colors["blue"], text_color=colors["white"])
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        selected = (selected - 1) % len(available_opts)
+                    elif event.key == pygame.K_DOWN:
+                        selected = (selected + 1) % len(available_opts)
+                    elif event.key == pygame.K_RETURN:
+                        return available_opts[selected]
 
-    running = True
-    show_confirm = False
-
-    while running:
-        screen.fill(colors["blue"])
-        render_lines(lines, bg_color=colors["blue"], text_color=colors["white"])
-
-        if show_confirm:
-            # Create a simple red confirmation box overlay
-            overlay_rect = pygame.Rect(0, 0, 400, 100)
-            overlay_rect.center = (screen.get_width() // 2, screen.get_height() // 2)
-            
-            # Draw box shadow then the box
-            pygame.draw.rect(screen, colors["black"], overlay_rect.move(5, 5)) 
-            pygame.draw.rect(screen, colors["red"], overlay_rect)
-            pygame.draw.rect(screen, colors["white"], overlay_rect, 2) # Border
-
-            # Render the prompt text
-            # Assuming your render_lines can take an optional offset or custom positioning
-            # For simplicity, we'll use a basic prompt message:
-            confirm_msg = "SAVE to CMOS and EXIT (Y/N)?  "
-            # (You might need a small helper here to draw text at a specific coordinate)
-            draw_text_centered(confirm_msg, overlay_rect.center)
-        
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            
-            if event.type == pygame.KEYDOWN:
-                if not show_confirm:
-                    if event.key == pygame.K_ESCAPE or event.key == pygame.K_F10:
-                        play_beep(frequency=800, duration=50) # Tiny feedback beep
-                        show_confirm = True
-                else:
-                    # Logic for the confirmation box
-                    if event.key == pygame.K_y:
-                        running = False # Exit setup
-                    if event.key == pygame.K_n or event.key == pygame.K_ESCAPE:
-                        show_confirm = False # Go back to menu
-    pygame.quit()
-    sys.exit()
+    options = [
+        "Standard CMOS Features",
+        "Advanced BIOS Features",
+        "Advanced Chipset Features",
+        "Power Management Setup",
+        "PnP/PCI Configurations",
+        "PC Health Status",
+        "Frequency/Voltage Control",
+        "Load Fail-Safe Defaults",
+        "Load Optimized Defaults",
+        "Set Supervisor Password",
+        "Set User Password",
+        "Save & Exit Setup",
+        "Exit Without Saving"
+    ]
+    while True:
+        choice = choose(options)
+        if choice == "Exit Without Saving":
+            __import__("main").main()
+        elif choice == "Save & Exit Setup":
+            __import__("main").main()

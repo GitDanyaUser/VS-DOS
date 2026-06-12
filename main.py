@@ -213,7 +213,9 @@ def help():
         "DEL [filename] - Delete a file",
         "GPUTEST - Test GPU capabilities",
         "EDIT [filename] - Open file in editor",
-        "STAT - Open statistic",
+        "STAT - Display system information (GUI)",
+        "VSSHELL - Open VS-DOS Shell (Unimplemented)",
+        "DIAG - Boot into VS-DOS Diagnostic Environment",
         "HELP - Show this help message",
         "EXIT - Shutdown this computer"
     ]
@@ -238,7 +240,8 @@ COMMANDS = {
     "gputest": lambda args: commands.gputest(render_lines, colors),
     "del": lambda args: commands.delete(get_real_current_path(), args),
     "stat": lambda args: commands.stat(screen, colors),
-    "vsgwm": lambda args: commands.vsgwm(screen, colors),
+    "vsshell": lambda args: commands.vsshell(screen, colors),
+    "diag": lambda args: [display_history.clear(), commands.diag(screen, render_lines, colors), []][2],
     "help": lambda args: help()
 }
 
