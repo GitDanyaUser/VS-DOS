@@ -3,23 +3,32 @@ import sys
 import os
 import time
 from bios import get_sys_info, bios_post
+import shutil
 import constants
 import re
 import vfsinit
 import commands
+import fnmatch
 from utils import sleep
 
 FONT_PATH = constants.FONT_PATH
 FONT_SIZE = constants.FONT_SIZE
 
 # --- INITIALIZATION ---
-vfsinit.init_vfs()
+print(vfsinit.init_vfs())
 current_path = []  # Empty list represents Root (C:\)
 
 def get_real_current_path():
     """Helper to get the physical path for the current virtual directory."""
-    # Joins 'storage/' with the folders in our current_path list
-    return os.path.join(constants.STORAGE_PATH, *current_path)
+    # os.path.abspath resolves all the ".." and "\" tricks into a clean, solid path string
+    virtual_root = os.path.abspath(constants.STORAGE_PATH)
+    target_path = os.path.abspath(os.path.join(virtual_root, *current_path))
+    
+    # Absolute jail check: If the target path doesn't start with the root path, force it back
+    if not target_path.startswith(virtual_root):
+        return virtual_root
+        
+    return target_path
 
 pygame.init()
 print("Pygame initiated")
@@ -159,19 +168,53 @@ def dirlist():
     return out
 
 def change_dir(args):
+    global current_path
+    
     if not args: 
         return f"C:\\{'\\'.join(current_path)}"
     
     target = args[0].lower()
-    if target == "..":
-        if current_path:
-            current_path.pop()
-        return None
     
-    # Check if the folder exists physically
-    potential_path = os.path.join(get_real_current_path(), target)
-    if os.path.exists(potential_path) and os.path.isdir(potential_path):
-        current_path.append(target)
+    # Normalize path separators for DOS style inputs
+    target = target.replace('/', '\\')
+    
+    # Handle root jumps (e.g., "cd \" or "cd \..\..")
+    if target.startswith('\\'):
+        # Reset temporarily to root to calculate potential target safely
+        working_path_list = []
+        # Strip the leading slash to parse the rest of the arguments
+        target = target.lstrip('\\')
+    else:
+        # Work from the current path copy
+        working_path_list = list(current_path)
+
+    # Split up any multi-directory jumps (like folder1\folder2 or ..\..\..)
+    segments = [s for s in target.split('\\') if s]
+    
+    # If the user typed "cd .." or "cd ." explicitly without slashes
+    if not segments:
+        if args[0] == "..":
+            segments = [".."]
+        elif args[0] == ".":
+            segments = ["."]
+
+    for segment in segments:
+        if segment == "..":
+            if working_path_list:
+                working_path_list.pop()
+        elif segment == ".":
+            continue
+        else:
+            working_path_list.append(segment)
+
+    # Verify if the final calculated destination physically exists inside the jail
+    virtual_root = os.path.abspath(constants.STORAGE_PATH)
+    potential_real_path = os.path.abspath(os.path.join(virtual_root, *working_path_list))
+
+    # Strict Jail Check: Make sure it's strictly inside STORAGE_PATH and is a real directory
+    if potential_real_path.startswith(virtual_root) and os.path.exists(potential_real_path) and os.path.isdir(potential_real_path):
+        current_path = working_path_list
+        return None
     else:
         return "Invalid directory."
 
@@ -194,11 +237,178 @@ def cmd_type(args):
     
     return "File not found."
 
+def cmd_rmdir(args):
+    if not args: 
+        return "Directory name required."
+    
+
+    recursive = False
+    dirname = ""
+
+    # Check for /s flag anywhere in the arguments
+    if len(args) >= 2 and args[0].lower() == "/s":
+        recursive = True
+        dirname = args[1].lower()
+    elif len(args) >= 2 and args[1].lower() == "/s":
+        recursive = True
+        dirname = args[0].lower()
+    else:
+        dirname = args[0].lower()
+    if dirname in ["dos", "temp"]:
+        return "Cannot remove system directory"
+    if dirname in [".", ".."]:
+        return "Cannot remove current or parent directory."
+    
+    dir_path = os.path.join(get_real_current_path(), dirname)
+    
+    if os.path.exists(dir_path) and os.path.isdir(dir_path):
+        try:
+            if recursive:
+                shutil.rmtree(dir_path)
+                return f"Directory '{dirname}' and all its contents removed."
+            else:
+                os.rmdir(dir_path)
+                return f"Directory '{dirname}' removed."
+        except OSError:
+            return "Directory not empty or cannot be removed."
+    
+    return "Directory not found."
+
+def cmd_copy(args):
+    switches = [a.lower() for a in args if a.startswith("/")]
+    clean_args = [a for a in args if not a.startswith("/")]
+    
+    if len(clean_args) < 1:
+        return "Required parameter missing."
+    
+    src = clean_args[0].lower()
+    dst = clean_args[1].lower() if len(clean_args) > 1 else "."
+    
+    recursive = "/s" in switches
+    current_dir = get_real_current_path()
+    dst_path = os.path.join(current_dir, dst)
+
+    src_path = os.path.join(current_dir, src)
+    if os.path.exists(src_path) and os.path.isdir(src_path):
+        try:
+            if recursive:
+                # If /s is used, copy the whole folder tree recursively
+                if os.path.exists(dst_path) and os.path.isdir(dst_path):
+                    if src != ".":
+                        dst_path = os.path.join(dst_path, os.path.basename(src_path))
+                shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                return f"Directory tree '{src}' successfully copied."
+            else:
+                # Without /s, copy ONLY the root files inside the folder
+                os.makedirs(dst_path, exist_ok=True)
+                copied_count = 0
+                for item in os.listdir(src_path):
+                    item_path = os.path.join(src_path, item)
+                    if os.path.isfile(item_path):
+                        shutil.copy2(item_path, os.path.join(dst_path, item))
+                        copied_count += 1
+                return f"        {copied_count} file(s) copied."
+        except Exception as e:
+            return f"Copy Error: {e}"
+
+    if not os.path.exists(src_path):
+        return "File not found."
+
+    try:
+        if os.path.isdir(dst_path):
+            dst_path = os.path.join(dst_path, os.path.basename(src_path))
+        
+        os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+        shutil.copy2(src_path, dst_path)
+        return "        1 file(s) copied."
+    except Exception as e:
+        return f"File copy error: {e}"
+
+def cmd_xcopy(args):
+    switches = [a.lower() for a in args if a.startswith("/")]
+    clean_args = [a for a in args if not a.startswith("/")]
+
+    if len(clean_args) < 1:
+        return "Required parameter missing."
+
+    src = clean_args[0].lower()
+    dst = clean_args[1].lower() if len(clean_args) > 1 else "."
+    
+    recursive = "/s" in switches
+
+    src_path = os.path.join(get_real_current_path(), src)
+    dst_path = os.path.join(get_real_current_path(), dst)
+
+    if not os.path.exists(src_path):
+        return "Path not found."
+
+    try:
+        if os.path.isdir(src_path):
+            if recursive:
+                # If /S is present, copy EVERYTHING (files and subdirectories)
+                if os.path.exists(dst_path) and os.path.isdir(dst_path):
+                    if src != ".":
+                        dst_path = os.path.join(dst_path, os.path.basename(src_path))
+                        
+                shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                return f"Directory tree '{src}' successfully copied."
+            else:
+                # If /S is NOT present, copy ONLY the loose files in the root of this folder
+                os.makedirs(dst_path, exist_ok=True)
+                copied_count = 0
+                
+                for item in os.listdir(src_path):
+                    item_path = os.path.join(src_path, item)
+                    # Safely copy files, completely ignoring/skipping subdirectories
+                    if os.path.isfile(item_path):
+                        shutil.copy2(item_path, os.path.join(dst_path, item))
+                        copied_count += 1
+                        
+                return f"        {copied_count} file(s) copied."
+        else:
+            if os.path.isdir(dst_path):
+                dst_path = os.path.join(dst_path, os.path.basename(src_path))
+            
+            os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+            shutil.copy2(src_path, dst_path)
+            return "        1 file(s) copied."
+
+    except Exception as e:
+        return f"XCOPY Error: {e}"
+
+def cmd_mkdir(args):
+    if not args: 
+        return "Directory name required."
+        
+    dirname = args[0].lower()
+    
+    if any(char in dirname for char in ['/', '\\', ':', '*', '?', '"', '<', '>', '|']):
+        return "The syntax of the command is incorrect."
+
+    dir_path = os.path.join(get_real_current_path(), dirname)
+
+    if os.path.exists(dir_path):
+        return "Directory or file already exists."
+
+    try:
+        os.makedirs(dir_path, exist_ok=True)
+        return None
+    except Exception as e:
+        return f"Error creating directory: {e}"
+
 def colortest_256():
     screen.fill(colors["black"])
     pygame.display.flip()
     sleep(0.5)
     bsod(code="0x00000116", code_desc="VIDEO_TDR_FAILURE")
+
+def whatsnew():
+    return [
+        f"{get_sys_info()["OS"]} Changelog:",
+        "Added new commands (COPY, XCOPY, RMDIR, MKDIR)",
+        "Fixed bug that you can go into main system drive via typing CD \\..",
+        "Added more info to the installer"
+    ]
 
 def help():
     return [
@@ -211,12 +421,17 @@ def help():
         "TYPE [filename] - Show contents of a file",
         "CD [folder] - Change directory",
         "DEL [filename] - Delete a file",
+        "COPY [source] [destination] [/S] - Copy file(s)",
+        "XCOPY [source] [destination] [/S] - Copy files and subdirectories",
+        "RMDIR [folder] [/S] - Remove an empty directory or firectory with all of it's content",
+        "MKDIR [folder] - Create a folder"
         "GPUTEST - Test GPU capabilities",
         "EDIT [filename] - Open file in editor",
         "STAT - Display system information (GUI)",
         "VSSHELL - Open VS-DOS Shell (Unimplemented)",
         "DIAG - Boot into VS-DOS Diagnostic Environment",
         "HELP - Show this help message",
+        "WHATSNEW - Display changelog",
         "EXIT - Shutdown this computer"
     ]
 
@@ -234,6 +449,11 @@ COMMANDS = {
     "dir": lambda args: dirlist(),
     "type": lambda args: cmd_type(args) if args else "Filename required.",
     "cd": lambda args: change_dir(args),
+    "rmdir": lambda args: cmd_rmdir(args),
+    "rd": lambda args: cmd_rmdir(args),
+    "copy": lambda args: cmd_copy(args),
+    "xcopy": lambda args: cmd_xcopy(args),
+    "mkdir": lambda args: cmd_mkdir(args),
     "gputest/256color": lambda args: colortest_256(),
     "edit": lambda args: commands.editor(screen, dos_font, colors, get_real_current_path(), args),
     "time": lambda args: display_history.append(commands.timetell()),
@@ -242,7 +462,8 @@ COMMANDS = {
     "stat": lambda args: commands.stat(screen, colors),
     "vsshell": lambda args: commands.vsshell(screen, colors),
     "diag": lambda args: [display_history.clear(), commands.diag(screen, render_lines, colors), []][2],
-    "help": lambda args: help()
+    "help": lambda args: help(),
+    "whatsnew": lambda args: whatsnew()
 }
 
 def main():

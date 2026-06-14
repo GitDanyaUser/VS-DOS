@@ -23,7 +23,12 @@ def init_vfs():
                 "dos/mouse.sys": "Placeholder for mouse.sys driver.",
                 "dos/vsdos.sys": "Placeholder for msdos.sys library",
                 "dos/io.sys": "Placeholder for io.sys library",
-                "temp": None
+                "dos/commands.sys": "Placeholder for commands.sys library",
+                "temp": None,
+                "install": None,
+                "install/setup.exe": "Placeholder for setup.exe installer.",
+                "install/installer.log": "Initializing installer\nInitialized\nCopying files\nCopy complete\nInstallation successful",
+                "install/vsdos.vaf": "Placeholder for VS-DOS installer archive file."
             }
 
             for path, content in default_layout.items():

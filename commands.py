@@ -242,7 +242,14 @@ def vsdos_setup(render_lines, colors, skip=False):
         "Welcome to the VS-DOS Installation Wizard!",
         "This wizard will guide you through the installation of VS-DOS",
         "",
-        "VS-DOS allows you to manage disk files, also VS-DOS supports VGA",
+        "VS-DOS allows you to manage disk files, play games, use GUI and much more!",
+        "",
+        "VS-DOS includes revolutionary VLFS (VS-DOS Long Filename Support)",
+        "technology which allows you to have filenames up to 255 characters long!",
+        "",
+        "VS-DOS uses filesystem called VXFS (VS-DOS eXtended File System) which is",
+        "more efficient and reliable than FAT12/16!",
+        "",
         "",
         "Press Enter to begin the installation process",
         "",
@@ -251,7 +258,8 @@ def vsdos_setup(render_lines, colors, skip=False):
     install_lines2 = [
         "",
         "",
-        "This will format the drive, are you sure to continue?",
+        "This will format the drive (VXFS), are you sure to continue?",
+        "",
         "",
         "Press C to format the drive",
         "",
@@ -262,6 +270,7 @@ def vsdos_setup(render_lines, colors, skip=False):
         "",
         "Thanks for installing VS-DOS!",
         "To see all of the avaiable commands, type 'help'",
+        "",
         "",
         "Press Enter to exit the installer"
     ]
@@ -276,6 +285,7 @@ def vsdos_setup(render_lines, colors, skip=False):
         "C:\\DOS\\VSDOS.SYS",
         "C:\\DOS\\MOUSE.SYS",
         "C:\\DOS\\EDIT.COM",
+        "C:\\DOS\\COMMANDS.SYS"
         "C:\\CONFIG.SYS",
         "C:\\AUTOEXEC.BAT",
         "C:\\README.TXT"
