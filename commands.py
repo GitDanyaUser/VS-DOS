@@ -324,7 +324,7 @@ def vsshell(screen, colors):
     screen.fill(colors["light_gray"])
     gui_stuff.draw_window2(screen, "VS-DOS Graphical Window Manager", 0, 0, 640, 480, close=False)
 
-    msg = win_font.render("This feature is not implemented yet, come back in v1.0.0!", True, colors["black"])
+    msg = win_font.render("This feature is not implemented yet, come back later!", True, colors["black"])
     screen.blit(msg, (10, 30))
     msg2 = win_font.render("Press Enter to return to shell", True, colors["black"])
     screen.blit(msg2, (10, 440))
