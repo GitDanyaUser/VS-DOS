@@ -63,7 +63,7 @@ if __name__ == "__main__":
                 elif event.key == pygame.K_2:
                     # Enter Setup
                     import bios
-                    bios.bios_setup(screen, render_lines)
+                    bios.bios_setup(screen)
                 elif event.key == pygame.K_3:
                     # Shutdown
                     pygame.quit()

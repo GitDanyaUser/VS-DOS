@@ -23,7 +23,16 @@ def timetell():
     time = datetime.datetime.now().strftime("%Y-%m-%d %I:%M %p")
     return time
 
-def gputest(render_lines, colors: dict):
+def gputest(screen, render_lines, bsod, colors: dict, args: list):
+    def colortest_256():
+        screen.fill(colors["black"])
+        pygame.display.flip()
+        sleep(0.5)
+        bsod(render_lines, code="0x00000116", code_desc="VIDEO_TDR_FAILURE")
+
+    if "/256" in args:
+        colortest_256()
+        
     lines = [
         f"GPU: {get_sys_info()["GPU"]}",
         f"VGA BIOS: {get_sys_info()["VGABIOS"]}",
@@ -35,7 +44,7 @@ def gputest(render_lines, colors: dict):
     lines2 = [
         "<<<==============>>>",
         "<<< Colored text test >>>",
-        'COL_SHOW:red;"Red " green;"Green " blue;"Blue"',
+        'COL_BG_SHOW: dark_gray COL_SHOW: red;"Red " green;"Green " blue;"Blue"',
         "<<<===================>>>",
         "Test completed!",
         "Press Enter to return to shell."
@@ -77,7 +86,7 @@ def editor(screen, dos_font, colors, current_phys_path, args):
     editing = True
     
     while editing:
-        screen.fill((30, 30, 30)) # Dark third-party background
+        screen.fill(colors["dark_gray"]) # Dark third-party background
         
         # Header & Footer bars
         pygame.draw.rect(screen, colors["light_gray"], (0, 0, 640, char_h + 4))
@@ -146,7 +155,6 @@ def delete(current_phys_path, args):
         
         try:
             os.remove(file_path)
-            return f"File {filename.upper()} deleted."
         except Exception as e:
             return f"Disk Error: {e}"
     else:
@@ -155,7 +163,7 @@ def delete(current_phys_path, args):
 def stat(screen, colors):
     screen.fill(colors["blue"])
     gui_stuff.draw_window(screen, "Stat Manager", 0, 0, 640, 480, close=False)
-    msg = win_font.render(f"RAM: {get_sys_info()["RAM"] // 1024}KB", True, colors["black"])
+    msg = win_font.render(f"RAM: {get_sys_info()["RAM"] // 1048576}MB", True, colors["black"])
     screen.blit(msg, (30, 30))
     msg2 = win_font.render(f"CPU: {get_sys_info()["CPU"]}", True, colors["black"])
     screen.blit(msg2, (30, 50))
@@ -285,7 +293,7 @@ def vsdos_setup(render_lines, colors, skip=False):
         "C:\\DOS\\VSDOS.SYS",
         "C:\\DOS\\MOUSE.SYS",
         "C:\\DOS\\EDIT.COM",
-        "C:\\DOS\\COMMANDS.SYS"
+        "C:\\DOS\\COMMANDS.SYS",
         "C:\\CONFIG.SYS",
         "C:\\AUTOEXEC.BAT",
         "C:\\README.TXT"
@@ -303,14 +311,14 @@ def vsdos_setup(render_lines, colors, skip=False):
             f"Copying files...",
             f"Target: {fname}",
             "",
-            "Please wait as setup copying files"
+            "Please wait as setup is copying files..."
         ]
         render_lines(add_lines(wait_lines2), colors["blue"], colors["white"])
         sleep(1.5)
-    render_lines(add_lines(install_lines3), colors["blue"], colors["white"])
-    wait_for_input(install_lines3)
     with open(os.path.join(constants.STORAGE_PATH, "install.txt"), "w") as f:
         f.write("Delete me if you want to see installer again")
+    render_lines(add_lines(install_lines3), colors["blue"], colors["white"])
+    wait_for_input(install_lines3)
 
 def vsshell(screen, colors):
     screen.fill(colors["light_gray"])
@@ -392,7 +400,7 @@ def diag(screen, render_lines, colors):
             "",
             "Supported Resolutions:",
             "- 640x480 @ 16 colors",
-            "- 320x200 @ 16 colors",
+            "- 320x200 @ 256 colors",
             "- 80x25 text mode",
             "",
             "Driver: vgadrvr.sys",

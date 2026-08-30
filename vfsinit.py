@@ -1,5 +1,6 @@
 import os
 import bios
+from utils import gen_rand_bytes
 import constants
 
 # --- CONFIGURATION ---
@@ -14,21 +15,44 @@ def init_vfs():
             os.makedirs(STORAGE_PATH)
             
             default_layout = {
-                "autoexec.bat": "ECHO OFF\nVER",
-                "config.sys": "FILES=30\nBUFFERS=20",
-                "command.com": "Placeholder for command.com shell",
-                "readme.txt": "Welcome to VS-DOS! This is an open-source DOS simulator, and right now you experiencing file system!\nYou can edit or add files via your OS file manager into the storage/ folder.",
+                # Boot / startup files
+                "autoexec.bat": "ECHO OFF\nVER\n",
+                "config.sys": "FILES=30\nBUFFERS=20\n",
+
+                # DOS-like system binaries
+                "command.com": gen_rand_bytes(96769),
+                "dos/mouse.sys": gen_rand_bytes(21312),
+                "dos/vsdos.sys": gen_rand_bytes(65536),
+                "dos/io.sys": gen_rand_bytes(40960),
+                "dos/commands.sys": gen_rand_bytes(131072),
+
+                # Text files
+                "readme.txt":
+                    "Welcome to VS-DOS! This is an open-source DOS simulator, "
+                    "and right now you are experiencing the file system!\n"
+                    "You can edit or add files via your OS file manager into "
+                    "the storage/ folder.\n",
+
+                # Directories
                 "dos": None,
-                "dos/edit.com": "Placeholder for edit.com executable.",
-                "dos/mouse.sys": "Placeholder for mouse.sys driver.",
-                "dos/vsdos.sys": "Placeholder for msdos.sys library",
-                "dos/io.sys": "Placeholder for io.sys library",
-                "dos/commands.sys": "Placeholder for commands.sys library",
                 "temp": None,
                 "install": None,
-                "install/setup.exe": "Placeholder for setup.exe installer.",
-                "install/installer.log": "Initializing installer\nInitialized\nCopying files\nCopy complete\nInstallation successful",
-                "install/vsdos.vaf": "Placeholder for VS-DOS installer archive file."
+
+                # DOS programs / binaries
+                "dos/edit.com": gen_rand_bytes(68124),
+
+                # Installer files
+                "install/setup.exe": gen_rand_bytes(524288),
+
+                "install/installer.log":
+                    "Initializing installer\n"
+                    "Initialized\n"
+                    "Copying files\n"
+                    "Copy complete\n"
+                    "Installation successful\n",
+
+                # VS-DOS archive
+                "install/vsdos.vaf": gen_rand_bytes(1572864),
             }
 
             for path, content in default_layout.items():
@@ -39,8 +63,14 @@ def init_vfs():
                 else:
                     # Ensure parent directories exist
                     os.makedirs(os.path.dirname(full_path), exist_ok=True)
-                    with open(full_path, "w") as f:
-                        f.write(content)
+                    
+                    # Handle bytes vs string writing modes
+                    if isinstance(content, bytes):
+                        with open(full_path, "wb") as f:
+                            f.write(content)
+                    else:
+                        with open(full_path, "w", encoding="utf-8") as f:
+                            f.write(content)
 
             return f"Drive C: initialized in ./{STORAGE_NAME}/"
         except Exception as e:

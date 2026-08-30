@@ -35,16 +35,10 @@ A retro-inspired DOS simulator written in Python using `pygame`.
 ## Installation
 
 1. Install Python 3 if needed.
-2. If you are on Python 3.14.x, install `pygame-ce` instead of `pygame`:
+2. Install `pygame-ce`:
 
 ```bash
 python -m pip install pygame-ce
-```
-
-3. Otherwise, install `pygame`:
-
-```bash
-python -m pip install pygame
 ```
 
 ## Running
@@ -57,8 +51,8 @@ python launcher.py
 
 ## Notes
 
-- If the font file is missing, the app falls back to the system monospace font. (it'll usually don't happen)
-- It will not format your actual drive! This is just simulation
+- If the font file is missing, the app falls back to the system monospace font. (it'll usually won't happen)
+- It will not format your actual drive! This is just a **simulation**
 
 ## Thanks
 

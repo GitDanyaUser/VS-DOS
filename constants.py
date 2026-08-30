@@ -5,7 +5,7 @@ FONT_SIZE = 16
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STORAGE_NAME = "storage"
 STORAGE_PATH = os.path.join(BASE_DIR, STORAGE_NAME)
-SYSTEM_FILES = ["autoexec.bat", "config.sys", "command.com", "io.sys", "msdos.sys"]
+SYSTEM_FILES = ["autoexec.bat", "config.sys", "command.com", "io.sys", "vsdos.sys", "mouse.sys", "commands.sys"]
 
 colors = {
     "black": (0, 0, 0),

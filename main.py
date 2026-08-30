@@ -9,7 +9,7 @@ import re
 import vfsinit
 import commands
 import fnmatch
-from utils import sleep
+from utils import sleep, bsod
 
 FONT_PATH = constants.FONT_PATH
 FONT_SIZE = constants.FONT_SIZE
@@ -49,39 +49,90 @@ except:
 
 # Reference: color block [████████]
 
+import re
+
 def render_lines(lines, bg_color=colors["black"], text_color=colors["light_gray"]):
     screen.fill(bg_color)
-    
-    # Same regex: catches color;"text"
+
     token_pattern = re.compile(r'([a-zA-Z_]+);"([^"]*)"')
 
     for i, line in enumerate(lines):
         current_x = 2
         current_y = 2 + (i * FONT_SIZE)
 
-        # 1. Trigger Check: Only parse if it starts with your command
-        if line.startswith("COL_SHOW:"):
-            # Remove the "COL_SHOW:" part to parse the rest
-            content = line.replace("COL_SHOW:", "", 1).strip()
-            
+        line_bg_color = bg_color
+
+        # Keep original spaces
+        remaining_line = line
+
+        # Parse COL_BG_SHOW without destroying text spaces
+        while "COL_BG_SHOW:" in remaining_line:
+            before, bg_part = remaining_line.split("COL_BG_SHOW:", 1)
+
+            # Only strip for reading the color name
+            bg_part_lstrip = bg_part.lstrip()
+            bg_token = bg_part_lstrip.split(maxsplit=1)[0]
+
+            line_bg_color = colors.get(bg_token.lower(), bg_color)
+
+            # Remove only the command and color name
+            remaining_line = before + bg_part_lstrip[len(bg_token):]
+
+        # 1. Colored Text Render
+        if remaining_line.startswith("COL_SHOW:"):
+            # Do NOT use .strip()
+            content = remaining_line.replace("COL_SHOW:", "", 1)
+
             matches = token_pattern.findall(content)
-            
+
             if matches:
+                total_width = sum(
+                    dos_font.render(text, True, text_color).get_width()
+                    for _, text in matches
+                )
+
+                pygame.draw.rect(
+                    screen,
+                    line_bg_color,
+                    (current_x, current_y, total_width, FONT_SIZE)
+                )
+
                 for color_name, text in matches:
                     actual_color = colors.get(color_name.lower(), text_color)
                     text_surface = dos_font.render(text, True, actual_color)
+
                     screen.blit(text_surface, (current_x, current_y))
-                    
-                    # Move X forward (no extra space so you can control it in the quotes)
                     current_x += text_surface.get_width()
+
             else:
-                # If COL_SHOW was used but no valid color tags were found
                 text_surface = dos_font.render(content, True, text_color)
+                pygame.draw.rect(
+                    screen,
+                    line_bg_color,
+                    (current_x, current_y,
+                     text_surface.get_width(), FONT_SIZE)
+                )
                 screen.blit(text_surface, (current_x, current_y))
-        
+
+        # 2. Normal Line
         else:
-            # 2. Normal Line: Just render white text
-            text_surface = dos_font.render(line, True, text_color)
+            text_surface = dos_font.render(
+                remaining_line,
+                True,
+                text_color
+            )
+
+            pygame.draw.rect(
+                screen,
+                line_bg_color,
+                (
+                    current_x,
+                    current_y,
+                    text_surface.get_width(),
+                    FONT_SIZE
+                )
+            )
+
             screen.blit(text_surface, (current_x, current_y))
 
     pygame.display.flip()
@@ -107,27 +158,6 @@ def wrap_text(text, font, max_width):
         wrapped_lines.append(current_line.strip())
         
     return wrapped_lines
-
-
-def bsod(code="0x0000003b", code_desc="SYSTEM_SERVICE_EXCEPTION"):
-    lines = [
-        "A problem has been detected and VS-DOS has been shut down to prevent damage",
-        "to your computer.",
-        "If this is the first time you've seen this Stop error screen, restart your ",
-        "computer.",
-        "",
-        "If this screen appears again, follow these steps:",
-        "Check to make sure any new hardware or software is properly installed.",
-        "",
-        f"Technical information: {code} ({code_desc})"
-    ]
-
-    render_lines(lines, bg_color=colors["blue"], text_color=colors["white"])
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
 
 BSOD_COMMANDS = [
     "con\\con",
@@ -231,7 +261,7 @@ def cmd_type(args):
         final_output = []
         for line in raw_lines:
             # Wrap each line from the file to fit the screen width
-            wrapped = wrap_text(line.strip(), dos_font, 635)
+            wrapped = wrap_text(line, dos_font, 635)
             final_output.extend(wrapped)
         return final_output
     
@@ -396,12 +426,6 @@ def cmd_mkdir(args):
     except Exception as e:
         return f"Error creating directory: {e}"
 
-def colortest_256():
-    screen.fill(colors["black"])
-    pygame.display.flip()
-    sleep(0.5)
-    bsod(code="0x00000116", code_desc="VIDEO_TDR_FAILURE")
-
 def whatsnew():
     return [
         f"{get_sys_info()["OS"]} Changelog:",
@@ -454,10 +478,9 @@ COMMANDS = {
     "copy": lambda args: cmd_copy(args),
     "xcopy": lambda args: cmd_xcopy(args),
     "mkdir": lambda args: cmd_mkdir(args),
-    "gputest/256color": lambda args: colortest_256(),
     "edit": lambda args: commands.editor(screen, dos_font, colors, get_real_current_path(), args),
     "time": lambda args: display_history.append(commands.timetell()),
-    "gputest": lambda args: commands.gputest(render_lines, colors),
+    "gputest": lambda args: commands.gputest(screen, render_lines, bsod, colors, args),
     "del": lambda args: commands.delete(get_real_current_path(), args),
     "stat": lambda args: commands.stat(screen, colors),
     "vsshell": lambda args: commands.vsshell(screen, colors),
@@ -504,9 +527,9 @@ def main():
                             elif isinstance(result, str): display_history.append(result)
                         elif base in BSOD_COMMANDS:
                             if base == "con\\con":
-                                bsod(code="0x0000003b", code_desc="SYSTEM_SERVICE_EXCEPTION")
+                                bsod(render_lines, code="0x0000003b", code_desc="SYSTEM_SERVICE_EXCEPTION")
                             else:
-                                bsod(code="0x00000006", code_desc="INVALID_HANDLE")
+                                bsod(render_lines, code="0x00000006", code_desc="INVALID_HANDLE")
                         elif base == "exit":
                             pygame.quit(); sys.exit()
                         else:
